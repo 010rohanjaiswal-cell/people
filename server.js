@@ -15,6 +15,7 @@ const clientRoutes = require('./routes/client');
 const jobRoutes = require('./routes/jobs');
 const adminRoutes = require('./routes/admin');
 const messageRoutes = require('./routes/messages');
+const seedRoutes = require('./routes/seed');
 
 // Security middleware
 app.use(helmet());
@@ -49,6 +50,7 @@ app.use('/api/client', clientRoutes);
 app.use('/api/jobs', jobRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/messages', messageRoutes);
+app.use('/api/seed', seedRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

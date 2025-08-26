@@ -281,6 +281,37 @@ router.post('/transactions/:transactionId/process-withdrawal', auth, roleAuth('a
   }
 });
 
+// Seed production database
+router.post('/seed', auth, roleAuth('admin'), async (req, res) => {
+  try {
+    const { exec } = require('child_process');
+    
+    exec('npm run seed:prod', (error, stdout, stderr) => {
+      if (error) {
+        console.error('Seeding error:', error);
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to seed database',
+          error: error.message
+        });
+      }
+      
+      console.log('Seeding output:', stdout);
+      res.json({
+        success: true,
+        message: 'Database seeded successfully',
+        output: stdout
+      });
+    });
+  } catch (error) {
+    console.error('Seed route error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to seed database'
+    });
+  }
+});
+
 // Get platform statistics
 router.get('/stats', auth, roleAuth('admin'), async (req, res) => {
   try {
