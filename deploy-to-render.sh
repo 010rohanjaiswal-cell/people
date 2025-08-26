@@ -1,0 +1,48 @@
+#!/bin/bash
+
+echo "🚀 Freelancing Platform Backend - Render Deployment"
+echo "=================================================="
+
+echo ""
+echo "📋 Prerequisites Checklist:"
+echo "1. ✅ GitHub repository: https://github.com/010rohanjaiswal-cell/people.git"
+echo "2. ⏳ Render account: https://render.com"
+echo "3. ⏳ MongoDB Atlas database (recommended)"
+
+echo ""
+echo "🔧 Step 1: Set up MongoDB Atlas"
+echo "   - Go to: https://www.mongodb.com/atlas"
+echo "   - Create free account and cluster"
+echo "   - Get your connection string"
+
+echo ""
+echo "🚀 Step 2: Deploy to Render"
+echo "   - Go to: https://dashboard.render.com"
+echo "   - Click 'New +' → 'Web Service'"
+echo "   - Connect GitHub repository: 010rohanjaiswal-cell/people"
+echo "   - Configure service:"
+echo "     • Name: freelancer-backend-jv21"
+echo "     • Environment: Node"
+echo "     • Build Command: npm install"
+echo "     • Start Command: npm start"
+
+echo ""
+echo "🔧 Step 3: Set Environment Variables"
+echo "   Required variables:"
+echo "   • NODE_ENV=production"
+echo "   • PORT=10000"
+echo "   • MONGODB_URI=your-mongodb-atlas-connection-string"
+echo "   • JWT_SECRET=your-secure-jwt-secret"
+echo "   • ADMIN_EMAIL=admin@freelancingplatform.com"
+echo "   • ADMIN_PASSWORD=your-secure-admin-password"
+
+echo ""
+echo "🧪 Step 4: Test Deployment"
+echo "   Health check:"
+echo "   curl https://freelancer-backend-jv21.onrender.com/api/health"
+
+echo ""
+echo "📚 For detailed instructions, see: DEPLOYMENT_GUIDE.md"
+echo ""
+echo "🎉 Once deployed, your API will be available at:"
+echo "   https://freelancer-backend-jv21.onrender.com"
