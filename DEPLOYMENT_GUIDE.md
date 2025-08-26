@@ -47,7 +47,7 @@ mongodb+srv://username:password@cluster.mongodb.net/freelancing-platform?retryWr
    ```env
    NODE_ENV=production
    PORT=10000
-   MONGODB_URI=mongodb+srv://your-username:your-password@your-cluster.mongodb.net/freelancing-platform?retryWrites=true&w=majority
+       MONGODB_URI=mongodb+srv://rohanjaiswar2467:N8iwsBEfkbF2Dd2S@cluster1.sg9pmcf.mongodb.net/freelancing-platform?retryWrites=true&w=majority&appName=Cluster1
    JWT_SECRET=your-super-secure-jwt-secret-key-for-production
    JWT_EXPIRES_IN=7d
    TWILIO_ACCOUNT_SID=your-twilio-account-sid

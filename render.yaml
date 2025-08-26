@@ -11,7 +11,7 @@ services:
       - key: PORT
         value: 10000
       - key: MONGODB_URI
-        sync: false
+        value: mongodb+srv://rohanjaiswar2467:N8iwsBEfkbF2Dd2S@cluster1.sg9pmcf.mongodb.net/freelancing-platform?retryWrites=true&w=majority&appName=Cluster1
       - key: JWT_SECRET
         sync: false
       - key: JWT_EXPIRES_IN
