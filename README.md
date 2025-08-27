@@ -1,10 +1,114 @@
 # Freelancing Platform Backend
 
-A complete backend for a freelancing platform with Client and Freelancer roles, built with Node.js, Express, and MongoDB.
+A complete backend API for a freelancing platform with Client and Freelancer roles, built with Node.js, Express, and MongoDB.
 
-## Features
+## 🏗️ Project Architecture
 
-### 🔐 Authentication & Authorization
+This repository contains **only the backend API**. For the complete platform, you'll need:
+
+- **Backend API** (this repo) - Node.js/Express/MongoDB
+- **Mobile App** - React Native/Flutter (separate repo)
+- **Admin Panel** - Next.js/React (separate repo)
+
+## 📁 Project Structure
+
+```
+freelancing-platform-backend/
+├── config/                 # Configuration files
+├── middleware/            # Express middleware
+├── models/               # MongoDB models
+├── routes/               # API routes
+├── scripts/              # Database seeding
+├── utils/                # Utility functions
+├── uploads/              # File uploads
+├── server.js             # Main server file
+└── package.json
+```
+
+## 🚀 Quick Start
+
+1. **Clone the backend repository**
+   ```bash
+   git clone <backend-repo-url>
+   cd freelancing-platform-backend
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Environment Setup**
+   ```bash
+   cp .env.example .env
+   ```
+   
+   Edit `.env` file with your configuration:
+   ```env
+   PORT=5000
+   MONGODB_URI=mongodb://localhost:27017/freelancing-platform
+   JWT_SECRET=your-super-secret-jwt-key
+   JWT_EXPIRES_IN=7d
+   ADMIN_EMAIL=admin@freelancingplatform.com
+   ADMIN_PASSWORD=admin123456
+   ```
+
+4. **Start MongoDB**
+   ```bash
+   # Start MongoDB service
+   mongod
+   ```
+
+5. **Seed the database (optional)**
+   ```bash
+   npm run seed
+   ```
+
+6. **Start the server**
+   ```bash
+   # Development mode
+   npm run dev
+   
+   # Production mode
+   npm start
+   ```
+
+The API will be available at `http://localhost:5000/api`
+
+## 🔗 Frontend Projects
+
+### Mobile App (React Native)
+```bash
+git clone <mobile-app-repo-url>
+cd freelancing-mobile-app
+npm install
+npm start
+```
+
+### Admin Panel (Next.js)
+```bash
+git clone <admin-panel-repo-url>
+cd freelancing-admin-panel
+npm install
+npm run dev
+```
+
+## 🌐 API Base URL
+
+- **Development**: `http://localhost:5000/api`
+- **Production**: `https://your-api.onrender.com/api`
+
+## 📱 Frontend Integration
+
+Both frontend projects should use the API base URL from environment variables:
+
+```javascript
+// .env.local (frontend projects)
+NEXT_PUBLIC_API_URL=http://localhost:5000/api
+REACT_APP_API_URL=http://localhost:5000/api
+```
+
+## 🔐 Authentication & Authorization
 - OTP-based login/signup via mobile number
 - JWT token-based authentication
 - Role-based access control (Client, Freelancer, Admin)

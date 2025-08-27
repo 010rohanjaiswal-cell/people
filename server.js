@@ -10,21 +10,55 @@ const app = express();
 
 // Import routes
 const authRoutes = require('./routes/auth');
+const firebaseAuthRoutes = require('./routes/firebaseAuth');
+const hybridAuthRoutes = require('./routes/hybridAuth');
 const freelancerRoutes = require('./routes/freelancer');
 const clientRoutes = require('./routes/client');
 const jobRoutes = require('./routes/jobs');
 const adminRoutes = require('./routes/admin');
 const messageRoutes = require('./routes/messages');
 const seedRoutes = require('./routes/seed');
+const paymentRoutes = require('./routes/payments');
 
 // Security middleware
 app.use(helmet());
-app.use(cors());
+
+// CORS configuration for frontend integration
+const allowedOrigins = [
+  'http://localhost:3000', // Next.js admin panel
+  'http://localhost:19006', // Expo development
+  'http://localhost:8081', // React Native Metro
+  'https://your-admin-panel.vercel.app', // Production admin panel
+  'https://your-mobile-app.expo.dev', // Production mobile app
+  process.env.CORS_ORIGIN // Custom origin from env
+].filter(Boolean);
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or Postman)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: process.env.CORS_CREDENTIALS === 'true',
+  optionsSuccessStatus: 200,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+};
+app.use(cors(corsOptions));
 
 // Rate limiting
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100, // limit each IP to 100 requests per windowMs
+  message: {
+    success: false,
+    message: 'Too many requests from this IP, please try again later.'
+  }
 });
 app.use(limiter);
 
@@ -45,12 +79,15 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/freelanci
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/firebase-auth', firebaseAuthRoutes);
+app.use('/api/hybrid-auth', hybridAuthRoutes);
 app.use('/api/freelancer', freelancerRoutes);
 app.use('/api/client', clientRoutes);
 app.use('/api/jobs', jobRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/seed', seedRoutes);
+app.use('/api/payments', paymentRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

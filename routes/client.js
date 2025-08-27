@@ -330,7 +330,7 @@ router.post('/offers/:offerId/respond',
   }
 );
 
-// Pay for completed job
+// Pay for completed job (Legacy wallet payment)
 router.post('/jobs/:jobId/pay',
   auth,
   roleAuth('client'),
@@ -385,16 +385,27 @@ router.post('/jobs/:jobId/pay',
       job.paymentCompletedAt = new Date();
       await job.save();
 
-      // Update freelancer wallet
-      freelancerWallet.balance += job.amount;
-      await freelancerWallet.save();
+      // Process commission and update wallets
+      const commissionService = require('../utils/commissionService');
+      const commissionResult = await commissionService.processCommission({
+        jobId: job._id,
+        clientId: req.user._id,
+        freelancerId: job.freelancerId._id,
+        amount: job.amount,
+        transactionId: transaction.referenceId,
+        paymentMethod: 'wallet'
+      });
 
-      // Update freelancer stats
+      if (!commissionResult.success) {
+        console.error('Commission processing failed:', commissionResult.error);
+      }
+
+      // Update freelancer stats with commission-adjusted amount
       const freelancerProfile = await FreelancerProfile.findOne({ userId: job.freelancerId._id });
       if (freelancerProfile) {
         freelancerProfile.totalJobs += 1;
         freelancerProfile.completedJobs += 1;
-        freelancerProfile.totalEarnings += job.amount;
+        freelancerProfile.totalEarnings += commissionResult.data.commissionDetails.freelancerAmount;
         await freelancerProfile.save();
       }
 

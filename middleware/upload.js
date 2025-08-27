@@ -42,6 +42,7 @@ const upload = multer({
 // Specific upload configurations
 const uploadProfilePhoto = upload.single('profilePhoto');
 const uploadDocuments = upload.fields([
+  { name: 'profilePhoto', maxCount: 1 },
   { name: 'aadhaarFront', maxCount: 1 },
   { name: 'aadhaarBack', maxCount: 1 },
   { name: 'drivingLicenseFront', maxCount: 1 },

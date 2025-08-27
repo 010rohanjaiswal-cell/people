@@ -10,6 +10,87 @@ const auth = require('../middleware/auth');
 const roleAuth = require('../middleware/roleAuth');
 const { uploadProfilePhoto, uploadDocuments, handleUploadError } = require('../middleware/upload');
 
+// Resubmit verification
+router.post('/profile/resubmit',
+  auth,
+  roleAuth('freelancer'),
+  uploadDocuments,
+  handleUploadError,
+  validationRules.freelancerProfile,
+  handleValidationErrors,
+  async (req, res) => {
+    try {
+      const {
+        fullName,
+        dateOfBirth,
+        gender,
+        address
+      } = req.body;
+
+      // Check if profile exists and is rejected
+      const existingProfile = await FreelancerProfile.findOne({ userId: req.user._id });
+      if (!existingProfile || existingProfile.verificationStatus !== 'rejected') {
+        return res.status(400).json({
+          success: false,
+          message: 'No rejected profile found to resubmit'
+        });
+      }
+
+      // Handle file uploads
+      const documents = {};
+      if (req.files) {
+        if (req.files.profilePhoto) documents.profilePhoto = req.files.profilePhoto[0].filename;
+        if (req.files.aadhaarFront) documents.aadhaarFront = req.files.aadhaarFront[0].filename;
+        if (req.files.aadhaarBack) documents.aadhaarBack = req.files.aadhaarBack[0].filename;
+        if (req.files.drivingLicenseFront) documents.drivingLicenseFront = req.files.drivingLicenseFront[0].filename;
+        if (req.files.drivingLicenseBack) documents.drivingLicenseBack = req.files.drivingLicenseBack[0].filename;
+        if (req.files.panFront) documents.panFront = req.files.panFront[0].filename;
+      }
+
+      // Validate required documents
+      const requiredDocuments = ['aadhaarFront', 'aadhaarBack', 'panFront'];
+      const missingDocuments = requiredDocuments.filter(doc => !documents[doc] && !req.files?.[doc]);
+
+      if (missingDocuments.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: `Missing required documents: ${missingDocuments.join(', ')}`,
+          missingDocuments
+        });
+      }
+
+      // Update profile with new details (replace previous details)
+      existingProfile.fullName = fullName;
+      existingProfile.dateOfBirth = dateOfBirth;
+      existingProfile.gender = gender;
+      existingProfile.address = address;
+      existingProfile.profilePhoto = documents.profilePhoto || existingProfile.profilePhoto;
+      existingProfile.documents = { ...existingProfile.documents, ...documents };
+      existingProfile.verificationStatus = 'resubmitted';
+      existingProfile.rejectionReason = null; // Clear previous rejection reason
+      existingProfile.isProfileComplete = true;
+
+      await existingProfile.save();
+
+      res.json({
+        success: true,
+        message: 'Profile resubmitted for verification. Please wait for admin approval.',
+        data: { 
+          profile: existingProfile,
+          verificationStatus: 'resubmitted',
+          message: 'Your profile has been resubmitted for verification. You will receive a Freelancer ID once approved by admin.'
+        }
+      });
+    } catch (error) {
+      console.error('Resubmit profile error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to resubmit profile'
+      });
+    }
+  }
+);
+
 // Get freelancer profile
 router.get('/profile', auth, roleAuth('freelancer'), async (req, res) => {
   try {
@@ -23,9 +104,29 @@ router.get('/profile', auth, roleAuth('freelancer'), async (req, res) => {
       });
     }
 
+    // Add verification status message
+    let statusMessage = '';
+    let canResubmit = false;
+    
+    if (profile.verificationStatus === 'pending') {
+      statusMessage = 'Your profile is pending verification. Please wait for admin approval.';
+    } else if (profile.verificationStatus === 'approved') {
+      statusMessage = `Your profile has been approved! Your Freelancer ID is: ${profile.freelancerId}`;
+    } else if (profile.verificationStatus === 'rejected') {
+      statusMessage = `Your profile was rejected. Reason: ${profile.rejectionReason}`;
+      canResubmit = true;
+    } else if (profile.verificationStatus === 'resubmitted') {
+      statusMessage = 'Your profile has been resubmitted for verification. Please wait for admin approval.';
+    }
+
     res.json({
       success: true,
-      data: { profile }
+      data: { 
+        profile,
+        statusMessage,
+        canApplyJobs: profile.verificationStatus === 'approved',
+        canResubmit
+      }
     });
   } catch (error) {
     console.error('Get profile error:', error);
@@ -36,7 +137,7 @@ router.get('/profile', auth, roleAuth('freelancer'), async (req, res) => {
   }
 });
 
-// Create/Update freelancer profile
+// Create/Update freelancer profile with verification
 router.post('/profile',
   auth,
   roleAuth('freelancer'),
@@ -56,11 +157,24 @@ router.post('/profile',
       // Handle file uploads
       const documents = {};
       if (req.files) {
+        if (req.files.profilePhoto) documents.profilePhoto = req.files.profilePhoto[0].filename;
         if (req.files.aadhaarFront) documents.aadhaarFront = req.files.aadhaarFront[0].filename;
         if (req.files.aadhaarBack) documents.aadhaarBack = req.files.aadhaarBack[0].filename;
         if (req.files.drivingLicenseFront) documents.drivingLicenseFront = req.files.drivingLicenseFront[0].filename;
         if (req.files.drivingLicenseBack) documents.drivingLicenseBack = req.files.drivingLicenseBack[0].filename;
         if (req.files.panFront) documents.panFront = req.files.panFront[0].filename;
+      }
+
+      // Validate required documents
+      const requiredDocuments = ['aadhaarFront', 'aadhaarBack', 'panFront'];
+      const missingDocuments = requiredDocuments.filter(doc => !documents[doc] && !req.files?.[doc]);
+
+      if (missingDocuments.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: `Missing required documents: ${missingDocuments.join(', ')}`,
+          missingDocuments
+        });
       }
 
       let profile = await FreelancerProfile.findOne({ userId: req.user._id });
@@ -72,9 +186,10 @@ router.post('/profile',
           dateOfBirth,
           gender,
           address,
+          profilePhoto: documents.profilePhoto || profile.profilePhoto,
           documents: { ...profile.documents, ...documents },
           isProfileComplete: true,
-          verificationStatus: 'under_review'
+          verificationStatus: 'pending' // Set to pending for admin review
         });
       } else {
         // Create new profile
@@ -84,9 +199,10 @@ router.post('/profile',
           dateOfBirth,
           gender,
           address,
+          profilePhoto: documents.profilePhoto,
           documents,
           isProfileComplete: true,
-          verificationStatus: 'under_review'
+          verificationStatus: 'pending' // Set to pending for admin review
         });
       }
 
@@ -94,8 +210,12 @@ router.post('/profile',
 
       res.json({
         success: true,
-        message: 'Profile saved successfully',
-        data: { profile }
+        message: 'Profile submitted for verification. Please wait for admin approval.',
+        data: { 
+          profile,
+          verificationStatus: 'pending',
+          message: 'Your profile has been submitted for verification. You will receive a Freelancer ID once approved by admin.'
+        }
       });
     } catch (error) {
       console.error('Save profile error:', error);
@@ -249,6 +369,16 @@ router.post('/jobs/:jobId/apply',
     try {
       const { jobId } = req.params;
       const { offeredAmount, message, offerType = 'direct_apply' } = req.body;
+
+      // Check freelancer verification status
+      const profile = await FreelancerProfile.findOne({ userId: req.user._id });
+      if (!profile || profile.verificationStatus !== 'approved') {
+        return res.status(400).json({
+          success: false,
+          message: 'Your profile must be approved before you can apply for jobs',
+          verificationStatus: profile?.verificationStatus || 'not_found'
+        });
+      }
 
       // Check if job exists and is open
       const job = await Job.findById(jobId);

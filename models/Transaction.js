@@ -41,8 +41,17 @@ const transactionSchema = new mongoose.Schema({
   },
   paymentMethod: {
     type: String,
-    enum: ['wallet', 'bank_transfer', 'upi', 'card'],
+    enum: ['wallet', 'bank_transfer', 'upi', 'card', 'phonepe', 'gateway'],
     default: 'wallet'
+  },
+  gatewayTransactionId: {
+    type: String
+  },
+  gatewayOrderId: {
+    type: String
+  },
+  gatewayResponse: {
+    type: mongoose.Schema.Types.Mixed
   },
   bankDetails: {
     accountNumber: String,

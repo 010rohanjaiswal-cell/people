@@ -105,6 +105,23 @@ const validationRules = {
       .withMessage('Account holder name must be between 2 and 50 characters')
   ],
   
+  // Firebase authentication validation
+  firebaseToken: [
+    body('idToken')
+      .notEmpty()
+      .withMessage('Firebase ID token is required'),
+    body('role')
+      .optional()
+      .isIn(['client', 'freelancer'])
+      .withMessage('Role must be either client or freelancer')
+  ],
+  
+  authMethod: [
+    body('authMethod')
+      .isIn(['otp', 'firebase', 'email'])
+      .withMessage('Authentication method must be otp, firebase, or email')
+  ],
+  
   adminLogin: [
     body('email')
       .isEmail()
@@ -113,6 +130,13 @@ const validationRules = {
     body('password')
       .isLength({ min: 6 })
       .withMessage('Password must be at least 6 characters long')
+  ],
+  
+  refund: [
+    body('reason')
+      .trim()
+      .isLength({ min: 10, max: 500 })
+      .withMessage('Refund reason must be between 10 and 500 characters')
   ]
 };
 

@@ -14,7 +14,7 @@ router.get('/verifications/pending', auth, roleAuth('admin'), async (req, res) =
     const skip = (page - 1) * limit;
 
     const verifications = await FreelancerProfile.find({
-      verificationStatus: 'under_review'
+      verificationStatus: 'pending'
     })
       .populate('userId', 'phone createdAt')
       .sort({ createdAt: -1 })
@@ -22,7 +22,7 @@ router.get('/verifications/pending', auth, roleAuth('admin'), async (req, res) =
       .limit(parseInt(limit));
 
     const total = await FreelancerProfile.countDocuments({
-      verificationStatus: 'under_review'
+      verificationStatus: 'pending'
     });
 
     res.json({
@@ -60,10 +60,10 @@ router.post('/verifications/:profileId/approve', auth, roleAuth('admin'), async 
       });
     }
 
-    if (profile.verificationStatus !== 'under_review') {
+    if (profile.verificationStatus !== 'pending' && profile.verificationStatus !== 'resubmitted' && profile.verificationStatus !== 'under_review') {
       return res.status(400).json({
         success: false,
-        message: 'Profile is not under review'
+        message: 'Profile is not pending, resubmitted, or under review for verification'
       });
     }
 
@@ -122,10 +122,10 @@ router.post('/verifications/:profileId/reject', auth, roleAuth('admin'), async (
       });
     }
 
-    if (profile.verificationStatus !== 'under_review') {
+    if (profile.verificationStatus !== 'pending' && profile.verificationStatus !== 'resubmitted' && profile.verificationStatus !== 'under_review') {
       return res.status(400).json({
         success: false,
-        message: 'Profile is not under review'
+        message: 'Profile is not pending, resubmitted, or under review'
       });
     }
 
@@ -143,6 +143,45 @@ router.post('/verifications/:profileId/reject', auth, roleAuth('admin'), async (
     res.status(500).json({
       success: false,
       message: 'Failed to reject verification'
+    });
+  }
+});
+
+// Get resubmitted freelancer verifications
+router.get('/verifications/resubmitted', auth, roleAuth('admin'), async (req, res) => {
+  try {
+    const { page = 1, limit = 10 } = req.query;
+    const skip = (page - 1) * limit;
+
+    const verifications = await FreelancerProfile.find({
+      verificationStatus: 'resubmitted'
+    })
+      .populate('userId', 'phone createdAt')
+      .sort({ updatedAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    const total = await FreelancerProfile.countDocuments({
+      verificationStatus: 'resubmitted'
+    });
+
+    res.json({
+      success: true,
+      data: {
+        verifications,
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total,
+          pages: Math.ceil(total / limit)
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Get resubmitted verifications error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get resubmitted verifications'
     });
   }
 });
@@ -465,6 +504,138 @@ router.get('/jobs', auth, roleAuth('admin'), async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to get jobs'
+    });
+  }
+});
+
+// Commission management routes
+const commissionService = require('../utils/commissionService');
+
+// Get commission statistics
+router.get('/commission/stats', auth, roleAuth('admin'), async (req, res) => {
+  try {
+    const stats = await commissionService.getCommissionStats();
+    
+    if (!stats.success) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to get commission statistics',
+        error: stats.error
+      });
+    }
+
+    res.json({
+      success: true,
+      data: stats.data
+    });
+  } catch (error) {
+    console.error('Get commission stats error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get commission statistics'
+    });
+  }
+});
+
+// Update commission rate
+router.put('/commission/rate', auth, roleAuth('admin'), async (req, res) => {
+  try {
+    const { rate } = req.body;
+    
+    if (!rate || isNaN(rate)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Valid commission rate is required'
+      });
+    }
+
+    const result = commissionService.updateCommissionRate(parseFloat(rate));
+    
+    if (!result.success) {
+      return res.status(400).json({
+        success: false,
+        message: result.error
+      });
+    }
+
+    res.json({
+      success: true,
+      data: result.data
+    });
+  } catch (error) {
+    console.error('Update commission rate error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update commission rate'
+    });
+  }
+});
+
+// Update minimum commission (disabled - no minimum limit)
+router.put('/commission/min', auth, roleAuth('admin'), async (req, res) => {
+  try {
+    res.status(400).json({
+      success: false,
+      message: 'Minimum commission limit is disabled - jobs can be of any amount'
+    });
+  } catch (error) {
+    console.error('Update minimum commission error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update minimum commission'
+    });
+  }
+});
+
+// Update maximum commission (disabled - no maximum limit)
+router.put('/commission/max', auth, roleAuth('admin'), async (req, res) => {
+  try {
+    res.status(400).json({
+      success: false,
+      message: 'Maximum commission limit is disabled - jobs can be of any amount'
+    });
+  } catch (error) {
+    console.error('Update maximum commission error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update maximum commission'
+    });
+  }
+});
+
+// Get commission transactions
+router.get('/commission/transactions', auth, roleAuth('admin'), async (req, res) => {
+  try {
+    const { page = 1, limit = 10 } = req.query;
+    const skip = (page - 1) * limit;
+
+    const transactions = await Transaction.find({ type: 'commission' })
+      .populate('jobId', 'title')
+      .populate('clientId', 'phone')
+      .populate('freelancerId', 'phone')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    const total = await Transaction.countDocuments({ type: 'commission' });
+
+    res.json({
+      success: true,
+      data: {
+        transactions,
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total,
+          pages: Math.ceil(total / limit)
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Get commission transactions error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get commission transactions'
     });
   }
 });

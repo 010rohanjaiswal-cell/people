@@ -2,11 +2,29 @@ const OTP = require('../models/OTP');
 
 class OTPService {
   // Generate OTP
-  static generateOTP() {
-    // For testing purposes, use a predictable OTP
+  static generateOTP(phone) {
+    // For testing purposes, use predictable OTPs
     if (process.env.NODE_ENV === 'development') {
       return '123456';
     }
+    
+    // For production testing with specific numbers
+    if (phone === '+919999999999') {
+      return '999999';
+    }
+    if (phone === '+918888888888') {
+      return '888888';
+    }
+    if (phone === '+917777777777') {
+      return '777777';
+    }
+    if (phone === '+916666666666') {
+      return '666666';
+    }
+    if (phone === '+919876543212') {
+      return '123456';
+    }
+    
     return Math.floor(100000 + Math.random() * 900000).toString();
   }
 
@@ -16,7 +34,7 @@ class OTPService {
       // Delete existing OTP for this phone and purpose
       await OTP.deleteMany({ phone, purpose });
 
-      const otp = this.generateOTP();
+      const otp = this.generateOTP(phone);
       const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
       const otpRecord = new OTP({

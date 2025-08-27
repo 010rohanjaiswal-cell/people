@@ -33,6 +33,18 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String
+  },
+  // Firebase authentication fields
+  firebaseUid: {
+    type: String,
+    unique: true,
+    sparse: true,
+    trim: true
+  },
+  authMethod: {
+    type: String,
+    enum: ['otp', 'firebase', 'email'],
+    default: 'otp'
   }
 }, {
   timestamps: true
