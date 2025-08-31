@@ -16,15 +16,13 @@ class FirebaseAuthService {
   async sendOTP(phoneNumber) {
     try {
       console.log('📱 Firebase: Sending OTP to:', phoneNumber);
-      console.log('📱 Firebase: Auth instance:', auth);
       
       // Format phone number
       const formattedPhone = phoneNumber.startsWith('+91') ? phoneNumber : `+91${phoneNumber}`;
       
-      // For React Native, we need to handle phone auth differently
       console.log('📱 Firebase: Attempting to send OTP...');
       
-      // Try sending OTP without any additional parameters
+      // Send OTP using Firebase Phone Auth
       const confirmationResult = await signInWithPhoneNumber(auth, formattedPhone);
       this.verificationId = confirmationResult.verificationId;
       
@@ -34,34 +32,6 @@ class FirebaseAuthService {
       console.error('❌ Firebase: Error sending OTP:', error);
       console.error('❌ Firebase: Error code:', error.code);
       console.error('❌ Firebase: Error message:', error.message);
-      
-      // Handle specific Firebase errors
-      if (error.code === 'auth/argument-error') {
-        console.log('🔧 Firebase: Trying alternative approach...');
-        // Try with a different approach - maybe the issue is with the auth instance
-        try {
-          // Format phone number again for the alternative method
-          const formattedPhone = phoneNumber.startsWith('+91') ? phoneNumber : `+91${phoneNumber}`;
-          
-          // Import auth directly to ensure we have the right instance
-          const { getAuth } = await import('firebase/auth');
-          const { getApp } = await import('firebase/app');
-          const app = getApp();
-          const authInstance = getAuth(app);
-          
-          const confirmationResult = await signInWithPhoneNumber(authInstance, formattedPhone);
-          this.verificationId = confirmationResult.verificationId;
-          
-          console.log('✅ Firebase: OTP sent successfully (alternative method)');
-          return { success: true, message: 'OTP sent successfully' };
-        } catch (altError) {
-          console.error('❌ Firebase: Alternative method also failed:', altError);
-          return { 
-            success: false, 
-            message: 'Phone authentication not properly configured. Please check Firebase settings.' 
-          };
-        }
-      }
       
       return { 
         success: false, 

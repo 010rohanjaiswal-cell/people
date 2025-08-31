@@ -1,7 +1,6 @@
 import { initializeApp } from 'firebase/app';
-import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
+import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // New Firebase configuration for freelancing-platform-v2
 const firebaseConfig = {
@@ -17,11 +16,8 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Initialize Firebase Authentication with React Native persistence
-// This is the correct way to handle React Native Firebase auth
-const auth = initializeAuth(app, {
-  persistence: getReactNativePersistence(AsyncStorage)
-});
+// Initialize Firebase Authentication (simplified)
+const auth = getAuth(app);
 
 // Initialize Cloud Firestore
 const db = getFirestore(app);
