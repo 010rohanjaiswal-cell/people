@@ -24,6 +24,29 @@ class OTPService {
     if (phone === '+919876543212') {
       return '123456';
     }
+    if (phone === '+919876543210') {
+      return '123456';
+    }
+    if (phone === '9876543210') {
+      return '123456';
+    }
+    if (phone === '+918286574914') {
+      return '828657';
+    }
+    
+    // New phone numbers and OTPs
+    if (phone === '+917021098460') {
+      return '702109';
+    }
+    if (phone === '+919773440204') {
+      return '977344';
+    }
+    if (phone === '+919987685223') {
+      return '998768';
+    }
+    if (phone === '+919920830915') {
+      return '992083';
+    }
     
     return Math.floor(100000 + Math.random() * 900000).toString();
   }
