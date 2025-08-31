@@ -3,19 +3,28 @@ let firebaseApp;
 
 try {
   if (admin.apps.length === 0) {
-    // Use environment variables for Firebase Admin SDK
-    const serviceAccount = {
-      type: "service_account",
-      project_id: process.env.FIREBASE_PROJECT_ID || 'freelancing-platform-v2',
-      private_key: process.env.FIREBASE_PRIVATE_KEY ? 
-        process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n') : undefined,
-      client_email: process.env.FIREBASE_CLIENT_EMAIL
-    };
+    // Check if we have the required environment variables
+    if (process.env.FIREBASE_PRIVATE_KEY && process.env.FIREBASE_CLIENT_EMAIL) {
+      // Use environment variables for Firebase Admin SDK
+      const serviceAccount = {
+        type: "service_account",
+        project_id: process.env.FIREBASE_PROJECT_ID || 'freelancing-platform-v2',
+        private_key: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+        client_email: process.env.FIREBASE_CLIENT_EMAIL
+      };
 
-    firebaseApp = admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-      projectId: process.env.FIREBASE_PROJECT_ID || 'freelancing-platform-v2',
-    });
+      firebaseApp = admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+        projectId: process.env.FIREBASE_PROJECT_ID || 'freelancing-platform-v2',
+      });
+      console.log('✅ Firebase Admin SDK initialized with service account');
+    } else {
+      // Fallback for local development - initialize without credentials
+      console.log('⚠️ Firebase credentials not found, initializing for local development only');
+      firebaseApp = admin.initializeApp({
+        projectId: 'freelancing-platform-v2'
+      });
+    }
   } else {
     firebaseApp = admin.app();
   }
