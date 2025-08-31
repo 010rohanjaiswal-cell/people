@@ -10,11 +10,33 @@ export interface AdminUser {
 
 export interface VerificationRequest {
   _id: string;
-  freelancerId: string;
+  freelancerId?: string;
   fullName: string;
   phone: string;
   status: 'pending' | 'approved' | 'rejected';
   createdAt: string;
+  // Profile details
+  dateOfBirth: string;
+  gender: string;
+  address: {
+    street: string;
+    city: string;
+    state: string;
+    pincode: string;
+  };
+  // Document fields
+  profilePhoto?: string;
+  documents?: {
+    aadhaarFront?: string;
+    aadhaarBack?: string;
+    panFront?: string;
+  };
+  verificationStatus: string;
+  userId: {
+    _id: string;
+    phone: string;
+    createdAt: string;
+  };
 }
 
 export interface PlatformStats {
@@ -48,7 +70,13 @@ export const adminService = {
   // Verifications
   getPendingVerifications: async (): Promise<VerificationRequest[]> => {
     const response = await api.get('/admin/verifications/pending');
-    return response.data.data;
+    return response.data.data.verifications || [];
+  },
+
+  getAllVerifications: async (status?: string): Promise<VerificationRequest[]> => {
+    const params = status ? { status } : {};
+    const response = await api.get('/admin/verifications', { params });
+    return response.data.data.verifications || [];
   },
 
   approveFreelancer: async (profileId: string, freelancerId: string) => {
@@ -94,6 +122,11 @@ export const adminService = {
   getJobDetails: async (jobId: string) => {
     const response = await api.get(`/admin/jobs/${jobId}`);
     return response.data.data;
+  },
+
+  deleteJob: async (jobId: string) => {
+    const response = await api.delete(`/admin/jobs/${jobId}`);
+    return response.data;
   },
 
   // Transaction Management

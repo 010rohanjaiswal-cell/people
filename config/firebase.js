@@ -20,7 +20,7 @@ try {
       // credential: admin.credential.applicationDefault(),
       
       // Project ID from environment variable
-      projectId: process.env.FIREBASE_PROJECT_ID || 'freelancing-platform',
+      projectId: process.env.FIREBASE_PROJECT_ID || 'freelancing-platform-69389',
     });
   } else {
     firebaseApp = admin.app();

@@ -21,7 +21,21 @@ const seedRoutes = require('./routes/seed');
 const paymentRoutes = require('./routes/payments');
 
 // Security middleware
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "blob:", "http://localhost:10000", "https://localhost:10000"],
+      connectSrc: ["'self'"],
+      fontSrc: ["'self'"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["'none'"],
+    },
+  },
+}));
 
 // CORS configuration for frontend integration
 const allowedOrigins = [
@@ -66,8 +80,13 @@ app.use(limiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Static files
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Static files with CORS headers
+app.use('/uploads', (req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  next();
+}, express.static(path.join(__dirname, 'uploads')));
 
 // Database connection
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/freelancing-platform', {
@@ -79,7 +98,7 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/freelanci
 
 // Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/firebase-auth', firebaseAuthRoutes);
+app.use('/api/firebase-auth', firebaseAuthRoutes.router);
 app.use('/api/hybrid-auth', hybridAuthRoutes);
 app.use('/api/freelancer', freelancerRoutes);
 app.use('/api/client', clientRoutes);
