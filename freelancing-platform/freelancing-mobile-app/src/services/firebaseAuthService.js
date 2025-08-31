@@ -40,6 +40,9 @@ class FirebaseAuthService {
         console.log('🔧 Firebase: Trying alternative approach...');
         // Try with a different approach - maybe the issue is with the auth instance
         try {
+          // Format phone number again for the alternative method
+          const formattedPhone = phoneNumber.startsWith('+91') ? phoneNumber : `+91${phoneNumber}`;
+          
           // Import auth directly to ensure we have the right instance
           const { getAuth } = await import('firebase/auth');
           const { getApp } = await import('firebase/app');
