@@ -27,14 +27,7 @@
       "favicon": "./assets/favicon.png",
       "bundler": "metro"
     },
-    "plugins": [
-      "expo-router"
-    ],
-    "scheme": "freelancing-platform",
     "extra": {
-      "router": {
-        "origin": false
-      },
       "eas": {
         "projectId": "your-project-id"
       }
