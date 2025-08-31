@@ -7,7 +7,7 @@ class PaymentGateway {
     this.baseUrl = process.env.PAYMENT_BASE_URL || 'https://api.phonepe.com/apis/hermes'; // Update with actual API URL
     this.merchantId = process.env.PAYMENT_MERCHANT_ID || 'TEST_MERCHANT';
     this.redirectUrl = process.env.PAYMENT_REDIRECT_URL || 'http://localhost:3000/payment/callback';
-    this.callbackUrl = process.env.PAYMENT_CALLBACK_URL || 'http://localhost:10000/api/payments/callback';
+    this.callbackUrl = process.env.PAYMENT_CALLBACK_URL || 'https://freelancer-backend-jv21.onrender.com/api/payments/callback';
   }
 
   // Generate authentication headers

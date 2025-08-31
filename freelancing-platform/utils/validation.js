@@ -4,8 +4,8 @@ const { body, validationResult } = require('express-validator');
 const validationRules = {
   phone: [
     body('phone')
-      .isMobilePhone('en-IN')
-      .withMessage('Please enter a valid Indian mobile number')
+      .matches(/^\+91[1-9]\d{9}$/)
+      .withMessage('Please enter a valid Indian mobile number (+91XXXXXXXXXX)')
   ],
   
   otp: [
@@ -126,7 +126,7 @@ const validationRules = {
     body('phone')
       .notEmpty()
       .withMessage('Phone number is required')
-      .matches(/^\+91[6-9]\d{9}$/)
+      .matches(/^\+91[1-9]\d{9}$/)
       .withMessage('Please enter a valid Indian phone number (+91XXXXXXXXXX)'),
     body('role')
       .optional()

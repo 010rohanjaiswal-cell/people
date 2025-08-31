@@ -12,7 +12,7 @@
         "gradleCommand": ":app:assembleDebug"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "http://localhost:10000/api"
+        "EXPO_PUBLIC_API_URL": "https://freelancer-backend-jv21.onrender.com/api"
       }
     },
     "preview": {
@@ -21,7 +21,7 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "http://localhost:10000/api"
+        "EXPO_PUBLIC_API_URL": "https://freelancer-backend-jv21.onrender.com/api"
       }
     },
     "production": {
@@ -32,7 +32,7 @@
         "distribution": "store"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://your-backend-url.com/api"
+        "EXPO_PUBLIC_API_URL": "https://freelancer-backend-jv21.onrender.com/api"
       }
     }
   },

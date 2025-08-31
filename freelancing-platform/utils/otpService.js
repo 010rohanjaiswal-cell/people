@@ -1,54 +1,12 @@
 const OTP = require('../models/OTP');
 
 class OTPService {
-  // Generate OTP
+  // Generate OTP - DISABLED (Firebase handles OTPs)
   static generateOTP(phone) {
-    // For testing purposes, use predictable OTPs
-    if (process.env.NODE_ENV === 'development') {
-      return '123456';
-    }
-    
-    // For production testing with specific numbers
-    if (phone === '+919999999999') {
-      return '999999';
-    }
-    if (phone === '+918888888888') {
-      return '888888';
-    }
-    if (phone === '+917777777777') {
-      return '777777';
-    }
-    if (phone === '+916666666666') {
-      return '666666';
-    }
-    if (phone === '+919876543212') {
-      return '123456';
-    }
-    if (phone === '+919876543210') {
-      return '123456';
-    }
-    if (phone === '9876543210') {
-      return '123456';
-    }
-    if (phone === '+918286574914') {
-      return '828657';
-    }
-    
-    // New phone numbers and OTPs
-    if (phone === '+917021098460') {
-      return '702109';
-    }
-    if (phone === '+919773440204') {
-      return '977344';
-    }
-    if (phone === '+919987685223') {
-      return '998768';
-    }
-    if (phone === '+919920830915') {
-      return '992083';
-    }
-    
-    return Math.floor(100000 + Math.random() * 900000).toString();
+    // Firebase handles all OTP generation and verification
+    // This method is kept for compatibility but should not be used
+    console.log('⚠️ OTP generation disabled - Firebase handles OTPs');
+    return '000000'; // Placeholder - not used
   }
 
   // Create OTP record

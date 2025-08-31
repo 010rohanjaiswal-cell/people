@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { adminAuth } = require('../config/firebase');
+const { admin } = require('../config/firebase');
 const { validationRules, handleValidationErrors } = require('../utils/validation');
 const JWTService = require('../utils/jwtService');
 const User = require('../models/User');
@@ -18,7 +18,7 @@ router.post('/firebase',
       console.log('🔥 Firebase Auth: Verifying token for phone:', phone, 'Role:', role);
 
       // Verify Firebase ID token
-      const decodedToken = await adminAuth.verifyIdToken(idToken);
+      const decodedToken = await admin.auth().verifyIdToken(idToken);
       const firebaseUid = decodedToken.uid;
       const firebasePhone = decodedToken.phone_number;
 
@@ -112,7 +112,7 @@ const verifyFirebaseToken = async (req, res, next) => {
     }
 
     const idToken = authHeader.split('Bearer ')[1];
-    const decodedToken = await adminAuth.verifyIdToken(idToken);
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
     
     // Find user by Firebase UID
     const user = await User.findOne({ firebaseUid: decodedToken.uid });

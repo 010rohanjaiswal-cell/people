@@ -8,91 +8,28 @@ const auth = require('../middleware/auth');
 const roleAuth = require('../middleware/roleAuth');
 const bcrypt = require('bcryptjs');
 
-// Send OTP for login/signup
+// Send OTP for login/signup (DISABLED - Use Firebase Authentication)
 router.post('/send-otp', 
   validationRules.phone,
   handleValidationErrors,
   async (req, res) => {
-    try {
-      const { phone } = req.body;
-
-      // Send OTP
-      await OTPService.sendOTP(phone, 'login');
-
-      res.json({
-        success: true,
-        message: 'OTP sent successfully'
-      });
-    } catch (error) {
-      console.error('Send OTP error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to send OTP'
-      });
-    }
+    res.status(400).json({
+      success: false,
+      message: 'OTP authentication is disabled. Please use Firebase authentication.'
+    });
   }
 );
 
-// Verify OTP and login/signup
+// Verify OTP and login/signup (DISABLED - Use Firebase Authentication)
 router.post('/verify-otp',
   validationRules.phone,
   validationRules.otp,
   handleValidationErrors,
   async (req, res) => {
-    try {
-      const { phone, otp, role = 'client' } = req.body;
-
-      // Verify OTP
-      const verification = await OTPService.verifyOTP(phone, otp, 'login');
-      
-      if (!verification.isValid) {
-        return res.status(400).json({
-          success: false,
-          message: verification.message
-        });
-      }
-
-      // Find or create user
-      let user = await User.findOne({ phone });
-      
-      if (!user) {
-        // Create new user
-        user = new User({
-          phone,
-          role,
-          isVerified: true
-        });
-        await user.save();
-      } else {
-        // Update last login
-        user.lastLogin = new Date();
-        user.isVerified = true;
-        await user.save();
-      }
-
-      // Generate JWT token
-      const token = JWTService.generateToken(user._id, user.role);
-
-      res.json({
-        success: true,
-        message: 'Login successful',
-        data: {
-          token,
-          user: {
-            id: user._id,
-            phone: user.phone,
-            role: user.role,
-            isVerified: user.isVerified
-          }
-        }
-      });
-    } catch (error) {
-      console.error('Verify OTP error:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to verify OTP'
-      });
-    }
+    res.status(400).json({
+      success: false,
+      message: 'OTP authentication is disabled. Please use Firebase authentication.'
+    });
   }
 );
 
