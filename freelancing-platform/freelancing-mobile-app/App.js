@@ -2,7 +2,7 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { StatusBar } from 'expo-status-bar';
-import AuthScreen from './src/screens/auth/AuthScreen';
+import NewAuthScreen from './src/screens/auth/NewAuthScreen';
 import ProfileCreationScreen from './src/screens/auth/ProfileCreationScreen';
 import VerificationPendingScreen from './src/screens/auth/VerificationPendingScreen';
 import DashboardScreen from './src/screens/DashboardScreen';
@@ -19,7 +19,7 @@ export default function App() {
     <NavigationContainer>
       <StatusBar style="auto" />
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Auth" component={AuthScreen} />
+        <Stack.Screen name="Auth" component={NewAuthScreen} />
         <Stack.Screen name="ProfileCreation" component={ProfileCreationScreen} />
         <Stack.Screen name="VerificationPending" component={VerificationPendingScreen} />
         <Stack.Screen name="Dashboard" component={DashboardScreen} />
