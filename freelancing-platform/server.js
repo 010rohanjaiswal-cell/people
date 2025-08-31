@@ -110,7 +110,7 @@ app.use('/api/payments', paymentRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', message: 'Freelancing Platform API is running' });
+  res.json({ status: 'OK', message: 'Freelancing Platform API is running - Firebase ready!' });
 });
 
 // Error handling middleware
