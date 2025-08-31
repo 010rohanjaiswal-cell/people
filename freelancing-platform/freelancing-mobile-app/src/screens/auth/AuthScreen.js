@@ -47,9 +47,6 @@ const AuthScreen = ({ navigation }) => {
       const fullPhoneNumber = `+91${phoneNumber}`;
       console.log('📱 Firebase: Sending OTP to:', fullPhoneNumber);
       
-      // Initialize reCAPTCHA (for web, this would be different)
-      firebaseAuthService.initializeRecaptcha('recaptcha-container');
-      
       const result = await firebaseAuthService.sendOTP(fullPhoneNumber);
       if (result.success) {
         setShowOtpInput(true);

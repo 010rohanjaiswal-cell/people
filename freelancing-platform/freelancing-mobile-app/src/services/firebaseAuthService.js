@@ -1,6 +1,5 @@
 import { 
   signInWithPhoneNumber, 
-  RecaptchaVerifier,
   PhoneAuthProvider,
   signInWithCredential
 } from 'firebase/auth';
@@ -11,40 +10,56 @@ import apiService from './apiService';
 class FirebaseAuthService {
   constructor() {
     this.verificationId = null;
-    this.recaptchaVerifier = null;
   }
 
-  // Initialize reCAPTCHA verifier
-  initializeRecaptcha(containerId) {
-    if (!this.recaptchaVerifier) {
-      this.recaptchaVerifier = new RecaptchaVerifier(auth, containerId, {
-        size: 'invisible',
-        callback: () => {
-          console.log('reCAPTCHA solved');
-        },
-        'expired-callback': () => {
-          console.log('reCAPTCHA expired');
-        }
-      });
-    }
-  }
-
-  // Send OTP via Firebase Phone Auth
+  // Send OTP via Firebase Phone Auth (React Native compatible)
   async sendOTP(phoneNumber) {
     try {
       console.log('📱 Firebase: Sending OTP to:', phoneNumber);
+      console.log('📱 Firebase: Auth instance:', auth);
       
       // Format phone number
       const formattedPhone = phoneNumber.startsWith('+91') ? phoneNumber : `+91${phoneNumber}`;
       
-      // Send OTP using Firebase
-      const confirmationResult = await signInWithPhoneNumber(auth, formattedPhone, this.recaptchaVerifier);
+      // For React Native, we need to handle phone auth differently
+      console.log('📱 Firebase: Attempting to send OTP...');
+      
+      // Try sending OTP without any additional parameters
+      const confirmationResult = await signInWithPhoneNumber(auth, formattedPhone);
       this.verificationId = confirmationResult.verificationId;
       
       console.log('✅ Firebase: OTP sent successfully');
       return { success: true, message: 'OTP sent successfully' };
     } catch (error) {
       console.error('❌ Firebase: Error sending OTP:', error);
+      console.error('❌ Firebase: Error code:', error.code);
+      console.error('❌ Firebase: Error message:', error.message);
+      
+      // Handle specific Firebase errors
+      if (error.code === 'auth/argument-error') {
+        console.log('🔧 Firebase: Trying alternative approach...');
+        // Try with a different approach - maybe the issue is with the auth instance
+        try {
+          // Import auth directly to ensure we have the right instance
+          const { getAuth } = await import('firebase/auth');
+          const { getApp } = await import('firebase/app');
+          const app = getApp();
+          const authInstance = getAuth(app);
+          
+          const confirmationResult = await signInWithPhoneNumber(authInstance, formattedPhone);
+          this.verificationId = confirmationResult.verificationId;
+          
+          console.log('✅ Firebase: OTP sent successfully (alternative method)');
+          return { success: true, message: 'OTP sent successfully' };
+        } catch (altError) {
+          console.error('❌ Firebase: Alternative method also failed:', altError);
+          return { 
+            success: false, 
+            message: 'Phone authentication not properly configured. Please check Firebase settings.' 
+          };
+        }
+      }
+      
       return { 
         success: false, 
         message: this.getErrorMessage(error.code) 
@@ -162,7 +177,8 @@ class FirebaseAuthService {
       'auth/operation-not-allowed': 'Phone authentication is not enabled',
       'auth/captcha-check-failed': 'reCAPTCHA verification failed',
       'auth/missing-verification-code': 'Please enter the OTP code',
-      'auth/missing-verification-id': 'Verification session expired. Please try again'
+      'auth/missing-verification-id': 'Verification session expired. Please try again',
+      'auth/argument-error': 'Phone authentication configuration error. Please check Firebase settings.'
     };
     
     return errorMessages[errorCode] || 'Authentication failed. Please try again.';
