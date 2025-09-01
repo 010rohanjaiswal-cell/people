@@ -174,6 +174,104 @@ router.get('/me', auth, async (req, res) => {
   }
 });
 
+// Firebase authentication
+router.post('/firebase', async (req, res) => {
+  try {
+    const { idToken, phone, role = 'client' } = req.body;
+
+    if (!idToken) {
+      return res.status(400).json({
+        success: false,
+        message: 'Firebase ID token is required'
+      });
+    }
+
+    // Verify Firebase ID token
+    const { auth } = require('../config/firebase');
+    if (!auth) {
+      return res.status(500).json({
+        success: false,
+        message: 'Firebase not properly configured'
+      });
+    }
+
+    let decodedToken;
+    try {
+      decodedToken = await auth.verifyIdToken(idToken);
+    } catch (error) {
+      console.error('Firebase token verification error:', error);
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid Firebase token'
+      });
+    }
+
+    const { uid, phoneNumber } = decodedToken;
+    const userPhone = phone || phoneNumber;
+
+    if (!userPhone) {
+      return res.status(400).json({
+        success: false,
+        message: 'Phone number is required'
+      });
+    }
+
+    // Find or create user
+    let user = await User.findOne({ 
+      $or: [
+        { phone: userPhone },
+        { firebaseUid: uid }
+      ]
+    });
+
+    if (!user) {
+      // Create new user
+      user = new User({
+        phone: userPhone,
+        firebaseUid: uid,
+        role,
+        isVerified: true,
+        authMethod: 'firebase'
+      });
+      await user.save();
+    } else {
+      // Update existing user
+      user.firebaseUid = uid;
+      user.lastLogin = new Date();
+      user.isVerified = true;
+      user.authMethod = 'firebase';
+      user.role = role; // Update role if switching
+      await user.save();
+    }
+
+    // Generate JWT token
+    const token = JWTService.generateToken(user._id, user.role);
+
+    res.json({
+      success: true,
+      message: 'Firebase authentication successful',
+      data: {
+        token,
+        user: {
+          id: user._id,
+          phone: user.phone,
+          role: user.role,
+          isVerified: user.isVerified,
+          authMethod: user.authMethod
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Firebase authentication error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Firebase authentication failed',
+      error: error.message
+    });
+  }
+});
+
 // Logout (client-side token removal)
 router.post('/logout', auth, async (req, res) => {
   try {
