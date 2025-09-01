@@ -17,6 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import firebaseAuthService from '../../services/firebaseAuthService';
 import networkTestService from '../../services/networkTest';
+import apiService from '../../services/apiService';
 
 const AuthScreen = ({ navigation }) => {
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -79,6 +80,8 @@ const AuthScreen = ({ navigation }) => {
     try {
       const fullPhoneNumber = `+91${phoneNumber}`;
       console.log('📱 Firebase: Verifying OTP for:', fullPhoneNumber, 'OTP:', otpString);
+      
+      // Use Firebase authentication instead of backend OTP verification
       const result = await firebaseAuthService.verifyOTP(otpString, fullPhoneNumber, selectedRole);
       if (result.success && result.data && result.data.data) {
         // Store authentication data
@@ -90,7 +93,7 @@ const AuthScreen = ({ navigation }) => {
           await AsyncStorage.setItem('userRole', selectedRole);
           await AsyncStorage.setItem('userData', JSON.stringify(user));
           await AsyncStorage.setItem('userId', user.id);
-          await AsyncStorage.setItem('authMethod', 'otp');
+          await AsyncStorage.setItem('authMethod', 'firebase');
           
           // Check user verification status and navigate accordingly
           const userStatus = await checkUserVerificationStatus(user.phone);
@@ -163,6 +166,8 @@ const AuthScreen = ({ navigation }) => {
         stack: error.stack,
         type: error.constructor.name
       });
+      // When backend is unavailable, treat as new user and proceed to profile creation
+      console.log('Backend unavailable, treating as new user');
       return { exists: false, verified: false };
     }
   };

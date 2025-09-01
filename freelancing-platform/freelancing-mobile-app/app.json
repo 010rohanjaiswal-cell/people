@@ -15,23 +15,29 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.company.people"
     },
     "android": {
+      "package": "com.company.people",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "favicon": "./assets/favicon.png",
       "bundler": "metro"
     },
+    "plugins": [
+      "@react-native-firebase/app",
+      "@react-native-firebase/auth"
+    ],
     "extra": {
       "eas": {
-        "projectId": "your-project-id"
+        "projectId": "0513debb-3d1b-4ac8-b89f-7f19af9870f1"
       }
-    },
-    "owner": "your-expo-username"
+    }
   }
 }

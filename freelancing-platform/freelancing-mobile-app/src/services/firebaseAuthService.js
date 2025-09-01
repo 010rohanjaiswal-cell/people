@@ -1,9 +1,4 @@
-import { 
-  signInWithPhoneNumber, 
-  PhoneAuthProvider,
-  signInWithCredential
-} from 'firebase/auth';
-import { auth } from '../config/firebase';
+import auth from '@react-native-firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import apiService from './apiService';
 
@@ -22,8 +17,8 @@ class FirebaseAuthService {
       
       console.log('📱 Firebase: Attempting to send OTP...');
       
-      // Send OTP using Firebase Phone Auth
-      const confirmationResult = await signInWithPhoneNumber(auth, formattedPhone);
+      // React Native Firebase handles reCAPTCHA automatically for mobile apps
+      const confirmationResult = await auth().signInWithPhoneNumber(formattedPhone);
       this.verificationId = confirmationResult.verificationId;
       
       console.log('✅ Firebase: OTP sent successfully');
@@ -33,9 +28,32 @@ class FirebaseAuthService {
       console.error('❌ Firebase: Error code:', error.code);
       console.error('❌ Firebase: Error message:', error.message);
       
+      // Handle specific Firebase errors
+      if (error.code === 'auth/invalid-phone-number') {
+        return { 
+          success: false, 
+          message: 'Invalid phone number format. Please use +91XXXXXXXXXX' 
+        };
+      } else if (error.code === 'auth/too-many-requests') {
+        return { 
+          success: false, 
+          message: 'Too many requests. Please try again later.' 
+        };
+      } else if (error.code === 'auth/quota-exceeded') {
+        return { 
+          success: false, 
+          message: 'SMS quota exceeded. Please try again later.' 
+        };
+      } else if (error.code === 'auth/operation-not-allowed') {
+        return { 
+          success: false, 
+          message: 'Phone authentication is not enabled for this app.' 
+        };
+      }
+      
       return { 
         success: false, 
-        message: this.getErrorMessage(error.code) 
+        message: this.getErrorMessage(error.code) || 'Failed to send OTP. Please try again.' 
       };
     }
   }
@@ -49,11 +67,11 @@ class FirebaseAuthService {
         throw new Error('No verification ID found. Please send OTP first.');
       }
 
-      // Create credential
-      const credential = PhoneAuthProvider.credential(this.verificationId, otp);
+      // Create credential using React Native Firebase
+      const credential = auth.PhoneAuthProvider.credential(this.verificationId, otp);
       
       // Sign in with credential
-      const userCredential = await signInWithCredential(auth, credential);
+      const userCredential = await auth().signInWithCredential(credential);
       const user = userCredential.user;
       
       console.log('✅ Firebase: OTP verified, user signed in:', user.uid);
@@ -113,7 +131,7 @@ class FirebaseAuthService {
   // Sign out
   async signOut() {
     try {
-      await auth.signOut();
+      await auth().signOut();
       await AsyncStorage.multiRemove([
         'authToken',
         'userRole', 
@@ -130,12 +148,12 @@ class FirebaseAuthService {
 
   // Get current user
   getCurrentUser() {
-    return auth.currentUser;
+    return auth().currentUser;
   }
 
   // Check if user is authenticated
   isAuthenticated() {
-    return !!auth.currentUser;
+    return !!auth().currentUser;
   }
 
   // Get error message from Firebase error code
@@ -159,7 +177,7 @@ class FirebaseAuthService {
 
   // Listen to authentication state changes
   onAuthStateChanged(callback) {
-    return auth.onAuthStateChanged(callback);
+    return auth().onAuthStateChanged(callback);
   }
 }
 

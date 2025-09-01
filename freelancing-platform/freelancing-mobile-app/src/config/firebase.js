@@ -1,25 +1,14 @@
-import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import auth from '@react-native-firebase/auth';
+import firestore from '@react-native-firebase/firestore';
 
-// New Firebase configuration for freelancing-platform-v2
-const firebaseConfig = {
-  apiKey: "AIzaSyDr_KGBQE7WiisZkhHZR8Yz9icfndxTkVE",
-  authDomain: "freelancing-platform-v2.firebaseapp.com",
-  projectId: "freelancing-platform-v2",
-  storageBucket: "freelancing-platform-v2.firebasestorage.app",
-  messagingSenderId: "713504655146",
-  appId: "1:713504655146:web:1d73bc6ffcdb61a8938053",
-  measurementId: "G-KBR56WFJPP"
-};
+// Firebase configuration for freelancing-platform-v2 (Android App)
+// Note: React Native Firebase automatically reads from google-services.json
+// No need to manually configure the firebaseConfig object
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-
-// Initialize Firebase Authentication (simplified)
-const auth = getAuth(app);
+// Initialize Firebase Authentication
+const firebaseAuth = auth();
 
 // Initialize Cloud Firestore
-const db = getFirestore(app);
+const firestoreDb = firestore();
 
-export { app, auth, db };
+export { firebaseAuth as auth, firestoreDb as db };

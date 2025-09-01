@@ -30,3 +30,33 @@ services:
         value: admin@freelancingplatform.com
       - key: ADMIN_PASSWORD
         sync: false
+      # Firebase Configuration
+      - key: FIREBASE_PROJECT_ID
+        value: freelancing-platform-v2
+      - key: FIREBASE_API_KEY
+        value: AIzaSyDr_KGBQE7WiisZkhHZR8Yz9icfndxTkVE
+      - key: FIREBASE_AUTH_DOMAIN
+        value: freelancing-platform-v2.firebaseapp.com
+      - key: FIREBASE_STORAGE_BUCKET
+        value: freelancing-platform-v2.firebasestorage.app
+      - key: FIREBASE_MESSAGING_SENDER_ID
+        value: 713504655146
+      - key: FIREBASE_APP_ID
+        value: 1:713504655146:web:1d73bc6ffcdb61a8938053
+      # Firebase Admin SDK Configuration
+      - key: FIREBASE_PRIVATE_KEY_ID
+        sync: false
+      - key: FIREBASE_PRIVATE_KEY
+        sync: false
+      - key: FIREBASE_CLIENT_EMAIL
+        sync: false
+      - key: FIREBASE_CLIENT_ID
+        sync: false
+      - key: FIREBASE_AUTH_URI
+        value: https://accounts.google.com/o/oauth2/auth
+      - key: FIREBASE_TOKEN_URI
+        value: https://oauth2.googleapis.com/token
+      - key: FIREBASE_AUTH_PROVIDER_X509_CERT_URL
+        value: https://www.googleapis.com/oauth2/v1/certs
+      - key: FIREBASE_CLIENT_X509_CERT_URL
+        sync: false
