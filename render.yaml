@@ -45,13 +45,13 @@ services:
         value: 1:713504655146:web:1d73bc6ffcdb61a8938053
       # Firebase Admin SDK Configuration
       - key: FIREBASE_PRIVATE_KEY_ID
-        sync: false
+        value: b84bdcea629940fe945ebdc0655a37a0da957ba7
       - key: FIREBASE_PRIVATE_KEY
-        sync: false
+        value: "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCwc34d3nadI4KZ\nskMb3dv9cYI5vy7V5ot+lIPXGR2ZU6ahC8oROtcCuONfA7CVaoWnwfHNHPqiwdZd\nhO25c8rgU508yp9NS+Nfc7s50Gp0P6Hmg/vxDusBmV8cuQYNq80mmuwX0cXqkwqV\nAO2dnT7Gwf6o+3zoahiuPrgQ80dVnL1H7+5qWmAwICUoizhnO2E2Qx7dHcYAkY5Q\nzHZOtZe2oA/WGFgK8vL0V9aKfsWPro7Q3CjGoMMIGFBNL93tffqJ3awilq+Zb86f\nw7XPEShX4NmOCYzcolwt4iYEiF8VQAFae8jkNklc0EmUnL+VcW8Bk84dUIfVwEQ+\nQ8xarH3HAgMBAAECggEAKXulgUEtUqkoCZlCtLj2gMGgU5IyYSBX2DTzP+0MK+Fi\nMcdzRJS4OtAbyFk2ORJ3hKaQgd/Xvs7iZk8bknd6ET4nH8UlKYd3V5f+QsvQUy8o\nkWijIRuYPWKA3WBUX39t9i8C5WCwboMOQFSdCGqQ+Spfg/vH9F4JGmHtZTLEqQgR\n3u9Fx0Tl1fzmOGTvRrk1i3zl4CBFGlNiu3dY8Hq1gLg0v9IpcOCfNWdV1ZCxjOYT\noMV+v4j/sPmgaCaM+FUi6etkHhicZXwB7vF8KmhGvixFNafCza5n1ofzvdQzZvnY\nAeBe9RJuAnQYlGHL5I8A88LUHl+gradHU9JflC9sOQKBgQDerZTiYbBbsPoeZH6K\njVp9mnBEtPPbc9SpLiLsrcjo0VoW24c2LNdOE1rSoOgjzFYvOBUX/a6y0xOA0UuK\n63TCa2hNxOmNVNpavuWRfiLjjgAtKCPoA/Z4sg++DSS8z3vAWaHZrnue9bYI5VzJ\nZUZSU4uDJZE4WY4/KEzIuKZVOQKBgQDK2wlc27NDIUBstlsgFjvWMmaOV0hCnhN8\nEjQYEwcNS+ko/PpE+72EXME/A8HL5dyBi1m0FFd0TmsUW6aQL/eaWP0yrR5Ve6G/\n0+JeXymmNHCFr4c2LmT/yfNRBBewm8vlsLwDVxpTqAIm0sAefa4wmN4/9w/ea/il\nyYO/T1Rq/wKBgFzy397PICpl6UGeeSOkdU1QleRYFCJaaz5jP7jDocVs/cnkwL/g\nX877TUH2YG/w71iudD+baLzEVrPCqWHHfulYpCUyOLsB3FNcs77ThASwVWqEAtjq\nLoua5+9Q1TDq+qEDyQdwSbHEpsN32g9G8t+Sd/26RK/c0f+S9toiGWwhAoGBAKyB\noHCrFMLdoB/S46NhxPjeW4BokTa1nvQ/trVSWQjhqSIGH/5R5lSNXHjuBPwUOXSg\nwGP3eHebyEvDtN2hLPrA+nEB723aeS7cTQDcBFsm9Rl6r41P3uv3HUekJ1E07Cwk\nI37jr6u8kDfbuS00y9Df7wCOZZxMTWMO/07Nc4iZAoGBALeFQwh2YOIEofLjxEFP\n6yoCHyE9pBAz+/R7SY9PoSUohxVn8oNxgxxfqgfUQld+Bg/5uf411bsIhVp+l5wo\nYVdLwvEJiUp5GXkFe7QLBgxsq1YTa2RoS0WiovtZCljoqPaeGYits7rHswCqQLB3\n2bbC8LAVGQvljeoKBTz6gyV9\n-----END PRIVATE KEY-----\n"
       - key: FIREBASE_CLIENT_EMAIL
-        sync: false
+        value: firebase-adminsdk-fbsvc@freelancing-platform-v2.iam.gserviceaccount.com
       - key: FIREBASE_CLIENT_ID
-        sync: false
+        value: 116945888069941124061
       - key: FIREBASE_AUTH_URI
         value: https://accounts.google.com/o/oauth2/auth
       - key: FIREBASE_TOKEN_URI
@@ -59,4 +59,4 @@ services:
       - key: FIREBASE_AUTH_PROVIDER_X509_CERT_URL
         value: https://www.googleapis.com/oauth2/v1/certs
       - key: FIREBASE_CLIENT_X509_CERT_URL
-        sync: false
+        value: https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc%40freelancing-platform-v2.iam.gserviceaccount.com
