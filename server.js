@@ -41,27 +41,38 @@ app.use(helmet({
 }));
 
 // CORS configuration for frontend integration
+const envOrigins = (process.env.CORS_ORIGIN || '')
+  .split(',')
+  .map(o => o.trim())
+  .filter(Boolean);
+
 const allowedOrigins = [
   'http://localhost:3000', // Next.js admin panel
   'http://localhost:19006', // Expo development
   'http://localhost:8081', // React Native Metro
   'https://freelancing-admin-panel-v1-b45f2rv4c-rohans-projects-70c44444.vercel.app', // Production admin panel
   'https://your-mobile-app.expo.dev', // Production mobile app
-  process.env.CORS_ORIGIN // Custom origin from env
+  ...envOrigins
 ].filter(Boolean);
 
 const corsOptions = {
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or Postman)
     if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
+
+    // Direct allow-list match
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+
+    // Allow any *.vercel.app and *.onrender.com subdomains
+    const isWildcardAllowed = /\.vercel\.app$/.test(origin) || /\.onrender\.com$/.test(origin);
+    if (isWildcardAllowed) return callback(null, true);
+
+    // Allow during local development
+    if (process.env.NODE_ENV === 'development') return callback(null, true);
+
+    callback(new Error('Not allowed by CORS'));
   },
-  credentials: process.env.CORS_CREDENTIALS === 'true',
+  credentials: (process.env.CORS_CREDENTIALS || 'true') === 'true',
   optionsSuccessStatus: 200,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
