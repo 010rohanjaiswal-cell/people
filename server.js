@@ -22,6 +22,7 @@ const adminRoutes = require('./routes/admin');
 const messageRoutes = require('./routes/messages');
 const seedRoutes = require('./routes/seed');
 const paymentRoutes = require('./routes/payments');
+const fs = require('fs');
 
 // Security middleware
 app.use(helmet({
@@ -112,6 +113,23 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/seed', seedRoutes);
 app.use('/api/payments', paymentRoutes);
+
+// Serve admin panel static build at /admin-panel
+const adminDist = path.join(__dirname, 'freelancing-platform', 'freelancing-admin-panel', '.next', 'standalone');
+const adminPublic = path.join(__dirname, 'freelancing-platform', 'freelancing-admin-panel', '.next', 'static');
+
+if (fs.existsSync(adminDist)) {
+  app.use('/admin-panel/_next/static', express.static(adminPublic, { maxAge: '1y', immutable: true }));
+  app.use('/admin-panel', express.static(adminDist));
+  // SPA fallback for admin panel
+  app.get('/admin-panel/*', (req, res) => {
+    const htmlPath = path.join(adminDist, 'server', 'app', 'index.html');
+    if (fs.existsSync(htmlPath)) {
+      return res.sendFile(htmlPath);
+    }
+    res.status(404).send('Admin panel build not found');
+  });
+}
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

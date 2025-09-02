@@ -17,6 +17,7 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  output: 'standalone',
   // Remove deprecated turbo config
   // experimental: {
   //   turbo: {
