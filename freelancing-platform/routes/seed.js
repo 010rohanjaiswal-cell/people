@@ -113,12 +113,7 @@ router.post('/', async (req, res) => {
       fullName: 'Mike Johnson',
       dateOfBirth: new Date('1992-03-10'),
       gender: 'male',
-      address: {
-        street: '789 Pine Road',
-        city: 'Bangalore',
-        state: 'Karnataka',
-        pincode: '560001'
-      },
+      address: '789 Pine Road, Bangalore, Karnataka, 560001',
       verificationStatus: 'approved',
       isProfileComplete: true,
       rating: 4.5,
@@ -134,12 +129,7 @@ router.post('/', async (req, res) => {
       fullName: 'Sarah Wilson',
       dateOfBirth: new Date('1995-07-25'),
       gender: 'female',
-      address: {
-        street: '321 Elm Street',
-        city: 'Chennai',
-        state: 'Tamil Nadu',
-        pincode: '600001'
-      },
+      address: '321 Elm Street, Chennai, Tamil Nadu, 600001',
       verificationStatus: 'approved',
       isProfileComplete: true,
       rating: 4.2,
@@ -154,12 +144,7 @@ router.post('/', async (req, res) => {
       fullName: 'Alex Brown',
       dateOfBirth: new Date('1993-11-08'),
       gender: 'other',
-      address: {
-        street: '654 Maple Drive',
-        city: 'Hyderabad',
-        state: 'Telangana',
-        pincode: '500001'
-      },
+      address: '654 Maple Drive, Hyderabad, Telangana, 500001',
       verificationStatus: 'under_review',
       isProfileComplete: true
     });
