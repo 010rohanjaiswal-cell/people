@@ -167,4 +167,4 @@ router.get('/profile', verifyFirebaseToken, async (req, res) => {
   }
 });
 
-module.exports = { router, verifyFirebaseToken };
+module.exports = router;

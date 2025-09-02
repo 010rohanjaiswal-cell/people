@@ -101,7 +101,7 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/freelanci
 
 // Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/firebase-auth', firebaseAuthRoutes.router);
+app.use('/api/firebase-auth', firebaseAuthRoutes);
 app.use('/api/hybrid-auth', hybridAuthRoutes);
 app.use('/api/freelancer', freelancerRoutes);
 app.use('/api/client', clientRoutes);
