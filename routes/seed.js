@@ -87,12 +87,7 @@ router.post('/', async (req, res) => {
       fullName: 'John Doe',
       dateOfBirth: new Date('1990-01-15'),
       gender: 'male',
-      address: {
-        street: '123 Main Street',
-        city: 'Mumbai',
-        state: 'Maharashtra',
-        pincode: '400001'
-      },
+      address: '123 Main Street, Mumbai, Maharashtra, 400001',
       isProfileComplete: true,
       totalJobsPosted: 2,
       totalSpent: 2500
@@ -104,12 +99,7 @@ router.post('/', async (req, res) => {
       fullName: 'Jane Smith',
       dateOfBirth: new Date('1988-05-20'),
       gender: 'female',
-      address: {
-        street: '456 Oak Avenue',
-        city: 'Delhi',
-        state: 'Delhi',
-        pincode: '110001'
-      },
+      address: '456 Oak Avenue, Delhi, Delhi, 110001',
       isProfileComplete: true,
       totalJobsPosted: 1,
       totalSpent: 2000
@@ -194,14 +184,10 @@ router.post('/', async (req, res) => {
       freelancerId: freelancer1._id,
       title: 'House Cleaning Service',
       description: 'Need professional cleaning for 2BHK apartment. Must be thorough and use eco-friendly products.',
+      category: 'cleaning',
       amount: 1500,
       numberOfPeople: 1,
-      address: {
-        street: '123 Main Street',
-        city: 'Mumbai',
-        state: 'Maharashtra',
-        pincode: '400001'
-      },
+      address: '123 Main Street, Mumbai, Maharashtra, 400001',
       genderPreference: 'female',
       status: 'completed',
       assignedAt: new Date('2024-01-15'),
@@ -215,14 +201,10 @@ router.post('/', async (req, res) => {
       freelancerId: freelancer1._id,
       title: 'Garden Maintenance',
       description: 'Need help with garden maintenance including pruning, weeding, and planting new flowers.',
+      category: 'care_taker',
       amount: 1000,
       numberOfPeople: 1,
-      address: {
-        street: '123 Main Street',
-        city: 'Mumbai',
-        state: 'Maharashtra',
-        pincode: '400001'
-      },
+      address: '123 Main Street, Mumbai, Maharashtra, 400001',
       genderPreference: 'any',
       status: 'assigned',
       assignedAt: new Date('2024-01-20')
@@ -233,14 +215,10 @@ router.post('/', async (req, res) => {
       clientId: client2._id,
       title: 'Pet Sitting Service',
       description: 'Need someone to take care of my dog for 3 days while I\'m out of town. Dog is friendly and well-trained.',
+      category: 'care_taker',
       amount: 2000,
       numberOfPeople: 1,
-      address: {
-        street: '456 Oak Avenue',
-        city: 'Delhi',
-        state: 'Delhi',
-        pincode: '110001'
-      },
+      address: '456 Oak Avenue, Delhi, Delhi, 110001',
       genderPreference: 'any',
       status: 'open'
     });
