@@ -47,12 +47,13 @@ router.post('/firebase',
         await user.save();
         console.log('🔥 Firebase Auth: New user created:', user._id);
       } else {
-        // Update existing user with Firebase UID and last login
+        // Update existing user with Firebase UID, role, and last login
         user.firebaseUid = firebaseUid;
+        user.role = role; // Update role if user wants to switch
         user.lastLogin = new Date();
         user.isVerified = true;
         await user.save();
-        console.log('🔥 Firebase Auth: Existing user updated:', user._id);
+        console.log('🔥 Firebase Auth: Existing user updated:', user._id, 'New role:', role);
       }
 
       // Generate JWT token for backend authentication

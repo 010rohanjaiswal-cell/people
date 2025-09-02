@@ -201,7 +201,7 @@ router.post('/profile',
 
       res.json({
         success: true,
-        message: 'Profile submitted for verification. Please wait for admin approval.',
+        message: 'Profile submitted for verification. Please wait for approval.',
         data: { 
           profile,
           verificationStatus: 'pending',

@@ -83,9 +83,17 @@ class FirebaseAuthService {
       const backendResult = await this.authenticateWithBackend(idToken, phoneNumber, role);
       
       if (backendResult.success) {
-        // Store authentication data
-        await this.storeAuthData(backendResult.data, user.uid);
-        return backendResult;
+        // Store authentication data with proper error handling
+        try {
+          await this.storeAuthData(backendResult.data, user.uid, role);
+          return backendResult;
+        } catch (error) {
+          console.error('❌ Firebase: Failed to store auth data:', error);
+          return {
+            success: false,
+            message: 'Authentication successful but failed to save data locally'
+          };
+        }
       } else {
         throw new Error(backendResult.message);
       }
@@ -102,6 +110,10 @@ class FirebaseAuthService {
   async authenticateWithBackend(idToken, phoneNumber, role) {
     try {
       const result = await apiService.authenticateWithFirebase(idToken, phoneNumber, role);
+      
+      // Debug: Log the backend response structure
+      console.log('🔍 Backend response:', JSON.stringify(result, null, 2));
+      
       return result;
     } catch (error) {
       console.error('❌ Backend authentication error:', error);
@@ -113,18 +125,61 @@ class FirebaseAuthService {
   }
 
   // Store authentication data
-  async storeAuthData(data, firebaseUid) {
+  async storeAuthData(data, firebaseUid, selectedRole) {
     try {
-      await AsyncStorage.setItem('authToken', data.token);
-      await AsyncStorage.setItem('userRole', data.user.role);
-      await AsyncStorage.setItem('userData', JSON.stringify(data.user));
-      await AsyncStorage.setItem('userId', data.user.id);
+      // Handle nested data structure from backend
+      let token, user;
+      
+      if (data && data.data) {
+        // Backend returns: { data: { data: { token, user } } }
+        token = data.data.token;
+        user = data.data.user;
+      } else if (data) {
+        // Direct structure: { token, user }
+        token = data.token;
+        user = data.user;
+      }
+      
+      // Validate data before storing
+      if (!token) {
+        console.error('❌ Firebase: No token found in data:', data);
+        throw new Error('Authentication token is missing');
+      }
+      
+      if (!user) {
+        console.error('❌ Firebase: No user data found in data:', data);
+        throw new Error('User data is missing');
+      }
+      
+      // Use the selected role from the user's choice, not from backend
+      // This allows the same phone number to have different roles
+      const userRole = selectedRole || user.role;
+      
+      if (!userRole) {
+        console.error('❌ Firebase: No role specified for user');
+        throw new Error('User role is required');
+      }
+      
+      // Store the data with the selected role
+      await AsyncStorage.setItem('authToken', token);
+      await AsyncStorage.setItem('userRole', userRole); // Store the selected role
+      await AsyncStorage.setItem('userData', JSON.stringify(user));
+      await AsyncStorage.setItem('userId', user.id);
       await AsyncStorage.setItem('firebaseUid', firebaseUid);
       await AsyncStorage.setItem('authMethod', 'firebase');
+      await AsyncStorage.setItem('selectedRole', userRole); // Additional role storage for clarity
       
       console.log('✅ Firebase: Auth data stored successfully');
+      console.log('📱 Stored token:', token ? 'Present' : 'Missing');
+      console.log('📱 Stored user:', user ? 'Present' : 'Missing');
+      console.log('🎭 Stored role:', userRole);
+      console.log('📱 User can now access:', userRole === 'client' ? 'Client features' : 'Freelancer features');
+      
     } catch (error) {
       console.error('❌ Firebase: Error storing auth data:', error);
+      console.error('❌ Data received:', JSON.stringify(data, null, 2));
+      console.error('❌ Selected role:', selectedRole);
+      throw error; // Re-throw to handle in calling function
     }
   }
 
@@ -154,6 +209,66 @@ class FirebaseAuthService {
   // Check if user is authenticated
   isAuthenticated() {
     return !!auth().currentUser;
+  }
+
+  // Get current user role from AsyncStorage
+  async getCurrentUserRole() {
+    try {
+      const role = await AsyncStorage.getItem('userRole');
+      const selectedRole = await AsyncStorage.getItem('selectedRole');
+      
+      // Return the selected role if available, otherwise fall back to userRole
+      return selectedRole || role;
+    } catch (error) {
+      console.error('❌ Firebase: Error getting user role:', error);
+      return null;
+    }
+  }
+
+  // Switch user role (for same phone number, different role)
+  async switchUserRole(newRole) {
+    try {
+      if (!['client', 'freelancer'].includes(newRole)) {
+        throw new Error('Invalid role. Must be "client" or "freelancer"');
+      }
+
+      // Update the stored role
+      await AsyncStorage.setItem('userRole', newRole);
+      await AsyncStorage.setItem('selectedRole', newRole);
+      
+      console.log('🔄 Firebase: User role switched to:', newRole);
+      return { success: true, newRole };
+    } catch (error) {
+      console.error('❌ Firebase: Error switching role:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Check if user can access specific role features
+  async canAccessRole(requiredRole) {
+    try {
+      const currentRole = await this.getCurrentUserRole();
+      return currentRole === requiredRole;
+    } catch (error) {
+      console.error('❌ Firebase: Error checking role access:', error);
+      return false;
+    }
+  }
+
+  // Get user's available roles (if they have multiple)
+  async getUserAvailableRoles() {
+    try {
+      const userData = await AsyncStorage.getItem('userData');
+      if (userData) {
+        const user = JSON.parse(userData);
+        // You can extend this to check backend for available roles
+        return ['client', 'freelancer']; // Default available roles
+      }
+      return [];
+    } catch (error) {
+      console.error('❌ Firebase: Error getting available roles:', error);
+      return [];
+    }
   }
 
   // Get error message from Firebase error code

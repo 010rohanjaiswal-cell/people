@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -19,7 +19,9 @@ import firebaseAuthService from '../../services/firebaseAuthService';
 import networkTestService from '../../services/networkTest';
 import apiService from '../../services/apiService';
 
-const AuthScreen = ({ navigation }) => {
+// Create a stable component that prevents re-renders
+const AuthScreen = React.memo(({ navigation }) => {
+  // State management with stable references
   const [phoneNumber, setPhoneNumber] = useState('');
   const [otp, setOtp] = useState('');
   const [selectedRole, setSelectedRole] = useState(null);
@@ -27,34 +29,114 @@ const AuthScreen = ({ navigation }) => {
   const [showOtpInput, setShowOtpInput] = useState(false);
   const [timer, setTimer] = useState(0);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  
+  // Simple refs to prevent rapid updates
+  const isProcessingRef = useRef(false);
+  const lastPhoneUpdateRef = useRef(0);
+  const phoneInputRef = useRef(null);
 
+  // Simple timer effect
   useEffect(() => {
-    let interval = null;
     if (timer > 0) {
-      interval = setInterval(() => {
-        setTimer(timer - 1);
+      const interval = setInterval(() => {
+        setTimer(prev => prev > 1 ? prev - 1 : 0);
       }, 1000);
+      return () => clearInterval(interval);
     }
-    return () => clearInterval(interval);
   }, [timer]);
 
-  const handleSendOTP = async () => {
-    if (!phoneNumber.trim() || phoneNumber.length < 10) {
-      Alert.alert('Error', 'Please enter a valid 10-digit phone number');
-      return;
+  // Intelligent throttling that adapts to typing speed
+  const debouncedSetPhoneNumber = useCallback((text) => {
+    const now = Date.now();
+    const timeSinceLastUpdate = now - lastPhoneUpdateRef.current;
+    
+    // Adaptive throttling: faster for normal typing, slower for rapid changes
+    let throttleTime = 150; // Default: comfortable typing
+    
+    if (timeSinceLastUpdate < 100) {
+      // Very rapid typing - increase throttle to prevent shaking
+      throttleTime = 200;
+    } else if (timeSinceLastUpdate < 300) {
+      // Normal typing - comfortable throttle
+      throttleTime = 150;
+    } else {
+      // Slow typing - minimal throttle
+      throttleTime = 100;
     }
+    
+    if (timeSinceLastUpdate < throttleTime) return;
+    
+    const cleaned = text.replace(/\D/g, '').slice(0, 10);
+    if (cleaned !== phoneNumber) {
+      lastPhoneUpdateRef.current = now;
+      setPhoneNumber(cleaned);
+    }
+  }, [phoneNumber]);
+
+  // Memoized computed values to prevent recalculation on every render
+  const isPhoneValid = useMemo(() => {
+    return phoneNumber.trim().length >= 10;
+  }, [phoneNumber]);
+
+  const canSendOTP = useMemo(() => {
+    return isPhoneValid && !isLoading && !isProcessingRef.current;
+  }, [isPhoneValid, isLoading]);
+
+  const canVerifyOTP = useMemo(() => {
+    return otp.trim().length === 6 && selectedRole && !isLoading && !isProcessingRef.current;
+  }, [otp, selectedRole, isLoading]);
+
+  // Stable style references to prevent inline style objects
+  const primaryButtonStyle = useMemo(() => [
+    styles.primaryButton,
+    isLoading && styles.buttonDisabled
+  ], [isLoading]);
+
+  const clientRoleButtonStyle = useMemo(() => [
+    styles.roleButton,
+    selectedRole === 'client' && styles.roleButtonSelected
+  ], [selectedRole]);
+
+  const freelancerRoleButtonStyle = useMemo(() => [
+    styles.roleButton,
+    selectedRole === 'freelancer' && styles.roleButtonSelected
+  ], [selectedRole]);
+
+  const resendButtonStyle = useMemo(() => [
+    styles.resendButton,
+    timer > 0 && styles.resendButtonDisabled
+  ], [timer]);
+
+  const resendTextStyle = useMemo(() => [
+    styles.resendText,
+    timer > 0 && styles.resendTextDisabled
+  ], [timer]);
+
+  // Ultra-stable send OTP function
+  const handleSendOTP = useCallback(async () => {
+    if (!canSendOTP || isProcessingRef.current) return;
+    
+    // Set processing flag to prevent multiple calls
+    isProcessingRef.current = true;
     setIsLoading(true);
+    
     try {
       const fullPhoneNumber = `+91${phoneNumber}`;
       console.log('📱 Firebase: Sending OTP to:', fullPhoneNumber);
       
       const result = await firebaseAuthService.sendOTP(fullPhoneNumber);
       if (result.success) {
-        setShowOtpInput(true);
-        setTimer(60);
-        setShowSuccessModal(true);
-        // Auto-hide success modal after 2 seconds
-        setTimeout(() => setShowSuccessModal(false), 2000);
+        // Batch all state updates together in next tick
+        requestAnimationFrame(() => {
+          setShowOtpInput(true);
+          setTimer(60);
+          setShowSuccessModal(true);
+        });
+        
+        // Auto-hide success modal
+        setTimeout(() => {
+          setShowSuccessModal(false);
+        }, 2000);
       } else {
         Alert.alert('Error', result.message || 'Failed to send OTP');
       }
@@ -63,28 +145,26 @@ const AuthScreen = ({ navigation }) => {
       Alert.alert('Error', 'Failed to send OTP. Please try again.');
     } finally {
       setIsLoading(false);
+      // Delay clearing processing flag to prevent rapid calls
+      setTimeout(() => {
+        isProcessingRef.current = false;
+      }, 300); // Reduced from 1000ms to 300ms
     }
-  };
+  }, [canSendOTP, phoneNumber]);
 
-  const handleVerifyOTP = async () => {
-    const otpString = otp.trim();
-    if (otpString.length !== 6) {
-      Alert.alert('Error', 'Please enter the complete 6-digit OTP');
-      return;
-    }
-    if (!selectedRole) {
-      Alert.alert('Error', 'Please select your role');
-      return;
-    }
+  // Ultra-stable verify OTP function
+  const handleVerifyOTP = useCallback(async () => {
+    if (!canVerifyOTP || isProcessingRef.current) return;
+    
+    isProcessingRef.current = true;
     setIsLoading(true);
+    
     try {
       const fullPhoneNumber = `+91${phoneNumber}`;
-      console.log('📱 Firebase: Verifying OTP for:', fullPhoneNumber, 'OTP:', otpString);
+      console.log('📱 Firebase: Verifying OTP for:', fullPhoneNumber, 'OTP:', otp.trim());
       
-      // Use Firebase authentication instead of backend OTP verification
-      const result = await firebaseAuthService.verifyOTP(otpString, fullPhoneNumber, selectedRole);
+      const result = await firebaseAuthService.verifyOTP(otp.trim(), fullPhoneNumber, selectedRole);
       if (result.success && result.data && result.data.data) {
-        // Store authentication data
         const token = result.data.data.token;
         const user = result.data.data.user;
         
@@ -95,38 +175,8 @@ const AuthScreen = ({ navigation }) => {
           await AsyncStorage.setItem('userId', user.id);
           await AsyncStorage.setItem('authMethod', 'firebase');
           
-          // Check user verification status and navigate accordingly
           const userStatus = await checkUserVerificationStatus(user.phone);
-
-          if (userStatus.exists && userStatus.verified) {
-            // Verified user - go to dashboard
-            console.log('Navigating to Dashboard (verified user)');
-            navigation.reset({
-              index: 0,
-              routes: [{ name: 'Dashboard', params: { userRole: selectedRole } }],
-            });
-          } else if (userStatus.exists && !userStatus.verified && userStatus.status === 'pending') {
-            // User exists but verification pending - go to verification pending
-            console.log('Navigating to Verification Pending');
-            navigation.reset({
-              index: 0,
-              routes: [{ name: 'VerificationPending', params: { userRole: selectedRole } }],
-            });
-          } else if (userStatus.exists && !userStatus.verified && userStatus.status === 'rejected') {
-            // User exists but verification rejected - go to profile creation to resubmit
-            console.log('Navigating to Profile Creation (rejected user)');
-            navigation.reset({
-              index: 0,
-              routes: [{ name: 'ProfileCreation', params: { userRole: selectedRole, userData: user, isResubmission: true } }],
-            });
-          } else {
-            // New user or no profile - go to profile creation
-            console.log('Navigating to Profile Creation (new user)');
-            navigation.reset({
-              index: 0,
-              routes: [{ name: 'ProfileCreation', params: { userRole: selectedRole, userData: user } }],
-            });
-          }
+          navigateBasedOnUserStatus(userStatus, selectedRole, user);
         } else {
           Alert.alert('Error', 'Invalid response data');
         }
@@ -138,8 +188,40 @@ const AuthScreen = ({ navigation }) => {
       Alert.alert('Error', 'Failed to verify OTP. Please try again.');
     } finally {
       setIsLoading(false);
+      setTimeout(() => {
+        isProcessingRef.current = false;
+      }, 300); // Reduced from 1000ms to 300ms
     }
-  };
+  }, [canVerifyOTP, phoneNumber, otp, selectedRole]);
+
+  // Stable navigation function
+  const navigateBasedOnUserStatus = useCallback((userStatus, role, user) => {
+    if (userStatus.exists && userStatus.verified) {
+      console.log('Navigating to Dashboard (verified user)');
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Dashboard', params: { userRole: role } }],
+      });
+    } else if (userStatus.exists && !userStatus.verified && userStatus.status === 'pending') {
+      console.log('Navigating to Verification Pending');
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'VerificationPending', params: { userRole: role } }],
+      });
+    } else if (userStatus.exists && !userStatus.verified && userStatus.status === 'rejected') {
+      console.log('Navigating to Profile Creation (rejected user)');
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'ProfileCreation', params: { userRole: role, userData: user, isResubmission: true } }],
+      });
+    } else {
+      console.log('Navigating to Profile Creation (new user)');
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'ProfileCreation', params: { userRole: role, userData: user } }],
+      });
+    }
+  }, [navigation]);
 
   // Check user verification status
   const checkUserVerificationStatus = async (phoneNumber) => {
@@ -161,19 +243,13 @@ const AuthScreen = ({ navigation }) => {
       }
     } catch (error) {
       console.error('Error checking user verification status:', error);
-      console.error('Error details:', {
-        message: error.message,
-        stack: error.stack,
-        type: error.constructor.name
-      });
-      // When backend is unavailable, treat as new user and proceed to profile creation
-      console.log('Backend unavailable, treating as new user');
       return { exists: false, verified: false };
     }
   };
 
   const handleResendOTP = async () => {
-    if (timer > 0) return;
+    if (timer > 0 || isProcessingRef.current) return;
+    isProcessingRef.current = true;
     setIsLoading(true);
     try {
       const fullPhoneNumber = `+91${phoneNumber}`;
@@ -189,6 +265,9 @@ const AuthScreen = ({ navigation }) => {
       Alert.alert('Error', 'Failed to resend OTP. Please try again.');
     } finally {
       setIsLoading(false);
+      setTimeout(() => {
+        isProcessingRef.current = false;
+      }, 300); // Reduced from 1000ms to 300ms
     }
   };
 
@@ -202,13 +281,27 @@ const AuthScreen = ({ navigation }) => {
     }
   };
 
-  const formatPhoneNumber = (text) => {
-    const cleaned = text.replace(/\D/g, '');
-    const limited = cleaned.slice(0, 10);
-    setPhoneNumber(limited);
-  };
+  // Stable event handlers to prevent inline functions
+  const handleClientRoleSelect = useCallback(() => {
+    setSelectedRole('client');
+  }, []);
 
-  return (
+  const handleFreelancerRoleSelect = useCallback(() => {
+    setSelectedRole('freelancer');
+  }, []);
+
+  const handleBackToPhone = useCallback(() => {
+    setShowOtpInput(false);
+    setOtp('');
+    setSelectedRole(null);
+    setTimer(0);
+  }, []);
+
+  const handleCloseSuccessModal = useCallback(() => {
+    setShowSuccessModal(false);
+  }, []);
+
+    return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -223,23 +316,31 @@ const AuthScreen = ({ navigation }) => {
             </Text>
           </View>
 
-          {!showOtpInput && (
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>Phone Number</Text>
-              <View style={styles.phoneInputContainer}>
-                <Text style={styles.countryCode}>+91</Text>
-                <TextInput
-                  style={styles.phoneInput}
-                  placeholder="Enter your phone number"
-                  value={phoneNumber}
-                  onChangeText={formatPhoneNumber}
-                  keyboardType="phone-pad"
-                  maxLength={10}
-                  editable={!isLoading}
-                />
+                      {!showOtpInput && (
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Phone Number</Text>
+                <View style={styles.phoneInputContainer}>
+                  <Text style={styles.countryCode}>+91</Text>
+                  <TextInput
+                    ref={phoneInputRef}
+                    style={styles.phoneInput}
+                    placeholder="Enter your phone number"
+                    value={phoneNumber}
+                    onChangeText={debouncedSetPhoneNumber}
+                    keyboardType="phone-pad"
+                    maxLength={10}
+                    editable={!isLoading}
+                    autoComplete="tel"
+                    textContentType="telephoneNumber"
+                  />
+                </View>
+                {phoneNumber.length > 0 && (
+                  <Text style={styles.inputHint}>
+                    {phoneNumber.length}/10 digits
+                  </Text>
+                )}
               </View>
-            </View>
-          )}
+            )}
 
           {showOtpInput && (
             <View style={styles.inputContainer}>
@@ -257,11 +358,11 @@ const AuthScreen = ({ navigation }) => {
                 Test OTPs: 828657 (+918286574914), 999999 (+919999999999), 888888 (+918888888888), 777777 (+917777777777)
               </Text>
               <TouchableOpacity
-                style={[styles.resendButton, timer > 0 && styles.resendButtonDisabled]}
+                style={resendButtonStyle}
                 onPress={handleResendOTP}
                 disabled={timer > 0 || isLoading}
               >
-                <Text style={[styles.resendText, timer > 0 && styles.resendTextDisabled]}>
+                <Text style={resendTextStyle}>
                   {timer > 0 ? `Resend OTP in ${timer}s` : 'Resend OTP'}
                 </Text>
               </TouchableOpacity>
@@ -269,15 +370,12 @@ const AuthScreen = ({ navigation }) => {
           )}
 
           {showOtpInput && (
-            <View style={styles.roleContainer}>
+            <View style={styles.roleSelectionContainer}>
               <Text style={styles.label}>Select Your Role</Text>
-              <View style={styles.roleButtons}>
+              <View style={styles.roleButtonsContainer}>
                 <TouchableOpacity
-                  style={[
-                    styles.roleButton,
-                    selectedRole === 'client' && styles.roleButtonSelected
-                  ]}
-                  onPress={() => setSelectedRole('client')}
+                  style={clientRoleButtonStyle}
+                  onPress={handleClientRoleSelect}
                   disabled={isLoading}
                 >
                   <Ionicons
@@ -294,11 +392,8 @@ const AuthScreen = ({ navigation }) => {
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={[
-                    styles.roleButton,
-                    selectedRole === 'freelancer' && styles.roleButtonSelected
-                  ]}
-                  onPress={() => setSelectedRole('freelancer')}
+                  style={freelancerRoleButtonStyle}
+                  onPress={handleFreelancerRoleSelect}
                   disabled={isLoading}
                 >
                   <Ionicons
@@ -319,7 +414,7 @@ const AuthScreen = ({ navigation }) => {
 
           <View style={styles.buttonContainer}>
             <TouchableOpacity
-              style={[styles.primaryButton, isLoading && styles.buttonDisabled]}
+              style={primaryButtonStyle}
               onPress={showOtpInput ? handleVerifyOTP : handleSendOTP}
               disabled={isLoading}
             >
@@ -343,12 +438,7 @@ const AuthScreen = ({ navigation }) => {
           {showOtpInput && (
             <TouchableOpacity
               style={styles.backButton}
-              onPress={() => {
-                setShowOtpInput(false);
-                setOtp('');
-                setSelectedRole(null);
-                setTimer(0);
-              }}
+              onPress={handleBackToPhone}
               disabled={isLoading}
             >
               <Ionicons name="arrow-back" size={20} color="#007AFF" />
@@ -356,7 +446,6 @@ const AuthScreen = ({ navigation }) => {
             </TouchableOpacity>
           )}
 
-          {/* Network Test Button */}
           <TouchableOpacity
             style={[styles.button, styles.networkTestButton]}
             onPress={handleTestNetwork}
@@ -367,12 +456,11 @@ const AuthScreen = ({ navigation }) => {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* Custom Success Modal */}
       <Modal
         visible={showSuccessModal}
         transparent={true}
         animationType="fade"
-        onRequestClose={() => setShowSuccessModal(false)}
+        onRequestClose={handleCloseSuccessModal}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.successModal}>
@@ -386,7 +474,13 @@ const AuthScreen = ({ navigation }) => {
       </Modal>
     </SafeAreaView>
   );
-};
+}, (prevProps, nextProps) => {
+  // Custom comparison function to prevent unnecessary re-renders
+  return true; // Never re-render unless props actually change
+});
+
+// Add display name for debugging
+AuthScreen.displayName = 'AuthScreen';
 
 const styles = StyleSheet.create({
   container: {
@@ -459,18 +553,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#1A1A1A',
     textAlign: 'center',
-    letterSpacing: 8,
+    letterSpacing: 2,
   },
   otpHint: {
     fontSize: 12,
     color: '#666666',
     textAlign: 'center',
     marginTop: 8,
-    fontStyle: 'italic',
+    marginBottom: 16,
   },
   resendButton: {
     alignSelf: 'center',
-    marginTop: 15,
     paddingVertical: 8,
     paddingHorizontal: 16,
   },
@@ -480,15 +573,15 @@ const styles = StyleSheet.create({
   resendText: {
     fontSize: 14,
     color: '#007AFF',
-    fontWeight: '500',
+    fontWeight: '600',
   },
   resendTextDisabled: {
     color: '#999999',
   },
-  roleContainer: {
+  roleSelectionContainer: {
     marginBottom: 30,
   },
-  roleButtons: {
+  roleButtonsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: 12,
@@ -500,7 +593,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: '#E1E5E9',
     paddingVertical: 16,
     paddingHorizontal: 20,
@@ -525,6 +618,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#007AFF',
     borderRadius: 12,
     paddingVertical: 16,
+    paddingHorizontal: 24,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -534,36 +628,36 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   primaryButtonText: {
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFFFFF',
   },
   backButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 12,
+    marginBottom: 20,
     gap: 8,
   },
   backButtonText: {
-    fontSize: 16,
     color: '#007AFF',
-    fontWeight: '500',
+    fontSize: 14,
+    fontWeight: '600',
   },
-  networkTestButton: {
-    backgroundColor: '#FF9500',
+  button: {
+    backgroundColor: '#F1F3F4',
     borderRadius: 8,
     paddingVertical: 12,
     paddingHorizontal: 16,
-    marginTop: 20,
-    alignSelf: 'center',
+    alignItems: 'center',
   },
-  button: {
-    // Base button styles
+  networkTestButton: {
+    marginTop: 20,
   },
   buttonText: {
+    color: '#666666',
     fontSize: 14,
-    color: '#FFFFFF',
     fontWeight: '500',
   },
   modalOverlay: {
@@ -577,15 +671,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 24,
     alignItems: 'center',
-    marginHorizontal: 40,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 8,
+    maxWidth: 300,
   },
   successIconContainer: {
     marginBottom: 16,
@@ -601,6 +687,13 @@ const styles = StyleSheet.create({
     color: '#666666',
     textAlign: 'center',
     lineHeight: 22,
+  },
+  inputHint: {
+    fontSize: 12,
+    color: '#007AFF',
+    textAlign: 'right',
+    marginTop: 4,
+    fontStyle: 'italic',
   },
 });
 

@@ -26,14 +26,8 @@ const freelancerProfileSchema = new mongoose.Schema({
     required: true
   },
   address: {
-    street: String,
-    city: String,
-    state: String,
-    pincode: String,
-    country: {
-      type: String,
-      default: 'India'
-    }
+    type: String,
+    trim: true
   },
   profilePhoto: {
     type: String // URL to uploaded image

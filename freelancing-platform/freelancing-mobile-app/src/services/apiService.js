@@ -2,21 +2,22 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 class ApiService {
   constructor() {
-    // Production URL - this will solve all tunnel mode issues
+    // Production URL - now has Firebase route working!
     const productionUrl = 'https://freelancer-backend-jv21.onrender.com';
-    const localBaseUrl = 'http://192.168.1.49:3001';
+    const localBaseUrl = 'http://192.168.1.49:5000'; // Updated to use port 5000
     
     this.baseUrls = [
-      productionUrl, // Primary: Production URL (works in tunnel mode)
-      localBaseUrl, // Fallback: Local IP (works in local mode)
-      'http://10.0.2.2:3001', // Android emulator
-      'http://localhost:3001' // Localhost
+      productionUrl, // Primary: Production backend (Firebase route working!)
+      localBaseUrl, // Fallback: Local backend
+      'http://10.0.2.2:5000', // Android emulator - local backend
+      'http://localhost:5000' // Localhost - local backend
     ];
     
     this.timeout = 15000; // 15 seconds
     
     // Debug: Log the URLs being used
     console.log('🔧 ApiService initialized with URLs:', this.baseUrls);
+    console.log('🚀 Production backend now has Firebase route!');
     
     // Test network connectivity
     this.testNetworkConnectivity();
@@ -25,6 +26,7 @@ class ApiService {
   async testNetworkConnectivity() {
     console.log('🔧 Testing network connectivity...');
     const testUrls = [
+      'https://freelancer-backend-jv21.onrender.com', // Production backend (Firebase route working!)
       'http://192.168.1.49:3001',
       'http://localhost:3001',
       'http://10.0.2.2:3001',

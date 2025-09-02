@@ -1,4 +1,4 @@
-const jwt = require('jsonwebtoken');
+const JWTService = require('../utils/jwtService');
 const User = require('../models/User');
 
 const auth = async (req, res, next) => {
@@ -12,8 +12,11 @@ const auth = async (req, res, next) => {
       });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = JWTService.verifyToken(token);
+    console.log('🔐 Token decoded:', { userId: decoded.userId });
+    
     const user = await User.findById(decoded.userId).select('-password');
+    console.log('👤 User found:', user ? { _id: user._id, role: user.role, isActive: user.isActive } : 'Not found');
     
     if (!user || !user.isActive) {
       return res.status(401).json({
@@ -25,16 +28,10 @@ const auth = async (req, res, next) => {
     req.user = user;
     next();
   } catch (error) {
-    if (error.name === 'JsonWebTokenError') {
+    if (error.message === 'Invalid token') {
       return res.status(401).json({
         success: false,
         message: 'Invalid token.'
-      });
-    }
-    if (error.name === 'TokenExpiredError') {
-      return res.status(401).json({
-        success: false,
-        message: 'Token expired.'
       });
     }
     res.status(500).json({

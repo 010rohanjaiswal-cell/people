@@ -26,20 +26,11 @@ const validationRules = {
     body('gender')
       .isIn(['male', 'female', 'other'])
       .withMessage('Please select a valid gender'),
-    body('address.street')
+    body('address')
       .optional()
       .trim()
-      .isLength({ min: 5, max: 100 })
-      .withMessage('Street address must be between 5 and 100 characters'),
-    body('address.city')
-      .optional()
-      .trim()
-      .isLength({ min: 2, max: 50 })
-      .withMessage('City must be between 2 and 50 characters'),
-    body('address.pincode')
-      .optional()
-      .isPostalCode('IN')
-      .withMessage('Please enter a valid Indian pincode')
+      .isLength({ min: 5, max: 200 })
+      .withMessage('Address must be between 5 and 200 characters')
   ],
   
   clientProfile: [

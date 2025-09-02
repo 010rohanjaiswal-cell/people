@@ -8,6 +8,9 @@ require('dotenv').config();
 
 const app = express();
 
+// Trust proxy for rate limiting behind load balancer (Render)
+app.set('trust proxy', 1);
+
 // Import routes
 const authRoutes = require('./routes/auth');
 const firebaseAuthRoutes = require('./routes/firebaseAuth');

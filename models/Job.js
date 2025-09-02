@@ -36,10 +36,8 @@ const jobSchema = new mongoose.Schema({
     max: 100
   },
   address: {
-    street: String,
-    city: String,
-    state: String,
-    pincode: String
+    type: String,
+    trim: true
   },
   genderPreference: {
     type: String,

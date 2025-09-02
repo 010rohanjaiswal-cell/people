@@ -18,12 +18,7 @@ export interface VerificationRequest {
   // Profile details
   dateOfBirth: string;
   gender: string;
-  address: {
-    street: string;
-    city: string;
-    state: string;
-    pincode: string;
-  };
+  address: string;
   // Document fields
   profilePhoto?: string;
   documents?: {
@@ -87,6 +82,11 @@ export const adminService = {
   rejectFreelancer: async (profileId: string, rejectionReason: string) => {
     const response = await api.post(`/admin/verifications/${profileId}/reject`, { rejectionReason });
     return response.data;
+  },
+
+  getVerificationDetails: async (profileId: string): Promise<VerificationRequest> => {
+    const response = await api.get(`/admin/verifications/${profileId}/details`);
+    return response.data.data.verificationDetails;
   },
 
   // Statistics

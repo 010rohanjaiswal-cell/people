@@ -229,10 +229,8 @@ const ProfileCreationScreen = ({ navigation, route }) => {
         
         formData.append('gender', gender);
         
-        // Send address as an object to match backend validation
-        formData.append('address[street]', address);
-        formData.append('address[city]', 'Test City');
-        formData.append('address[pincode]', '123456');
+        // Send address as simple string
+        formData.append('address', address);
 
         // Add profile photo
         if (profilePhoto) {
@@ -279,14 +277,14 @@ const ProfileCreationScreen = ({ navigation, route }) => {
           fullName,
           dateOfBirth: isoDate,
           gender,
-          address: { street: address, city: 'Test City', pincode: '123456' }
+          address: address
         });
 
         const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/freelancer/profile`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data',
+            // Don't set Content-Type manually - let the browser set it with boundary
           },
           body: formData
         });
@@ -296,7 +294,7 @@ const ProfileCreationScreen = ({ navigation, route }) => {
         if (data.success) {
           Alert.alert(
             'Success',
-            'Profile submitted for verification. Please wait for admin approval.',
+            'Profile submitted for verification. Please wait for approval.',
             [
               {
                 text: 'OK',

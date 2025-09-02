@@ -17,6 +17,7 @@ router.get('/verifications/pending', auth, roleAuth('admin'), async (req, res) =
       verificationStatus: 'pending'
     })
       .populate('userId', 'phone createdAt')
+      .select('fullName dateOfBirth gender address verificationStatus createdAt userId')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(parseInt(limit));
@@ -42,6 +43,61 @@ router.get('/verifications/pending', auth, roleAuth('admin'), async (req, res) =
     res.status(500).json({
       success: false,
       message: 'Failed to get pending verifications'
+    });
+  }
+});
+
+// Get detailed verification information for admin panel
+router.get('/verifications/:profileId/details', auth, roleAuth('admin'), async (req, res) => {
+  try {
+    const { profileId } = req.params;
+
+    const profile = await FreelancerProfile.findById(profileId)
+      .populate('userId', 'phone createdAt email');
+
+    if (!profile) {
+      return res.status(404).json({
+        success: false,
+        message: 'Profile not found'
+      });
+    }
+
+          // Transform the data to include all necessary fields for admin review
+      const verificationDetails = {
+        _id: profile._id,
+        freelancerId: profile.freelancerId,
+        fullName: profile.fullName,
+        dateOfBirth: profile.dateOfBirth,
+        gender: profile.gender,
+        address: profile.address || '',
+        profilePhoto: profile.profilePhoto,
+        documents: {
+          aadhaarFront: profile.documents?.aadhaarFront || '',
+          aadhaarBack: profile.documents?.aadhaarBack || '',
+          panFront: profile.documents?.panFront || ''
+        },
+        verificationStatus: profile.verificationStatus,
+        rejectionReason: profile.rejectionReason,
+        isProfileComplete: profile.isProfileComplete,
+        createdAt: profile.createdAt,
+        updatedAt: profile.updatedAt,
+        user: {
+          _id: profile.userId._id,
+          phone: profile.userId.phone,
+          email: profile.userId.email,
+          createdAt: profile.userId.createdAt
+        }
+      };
+
+    res.json({
+      success: true,
+      data: { verificationDetails }
+    });
+  } catch (error) {
+    console.error('Get verification details error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get verification details'
     });
   }
 });
@@ -157,6 +213,7 @@ router.get('/verifications/resubmitted', auth, roleAuth('admin'), async (req, re
       verificationStatus: 'resubmitted'
     })
       .populate('userId', 'phone createdAt')
+      .select('fullName dateOfBirth gender address verificationStatus rejectionReason updatedAt userId')
       .sort({ updatedAt: -1 })
       .skip(skip)
       .limit(parseInt(limit));
@@ -199,6 +256,7 @@ router.get('/verifications', auth, roleAuth('admin'), async (req, res) => {
 
     const verifications = await FreelancerProfile.find(query)
       .populate('userId', 'phone createdAt')
+      .select('fullName dateOfBirth gender address verificationStatus rejectionReason createdAt userId')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(parseInt(limit));

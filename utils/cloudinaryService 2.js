@@ -4,20 +4,6 @@ const { Readable } = require('stream');
 class CloudinaryService {
   static async uploadImage(file, folder = 'freelancing-platform') {
     try {
-      // Check if Cloudinary is configured
-      if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
-        console.warn('⚠️ Cloudinary not configured - skipping image upload');
-        // Return a mock URL for development/testing
-        return {
-          url: 'https://via.placeholder.com/400x400?text=Image+Upload+Disabled',
-          public_id: 'mock-image-id',
-          format: 'jpg',
-          width: 400,
-          height: 400,
-          bytes: 0
-        };
-      }
-
       // Convert file buffer to stream
       const stream = Readable.from(file.buffer);
       
@@ -60,12 +46,6 @@ class CloudinaryService {
 
   static async deleteImage(publicId) {
     try {
-      // Check if Cloudinary is configured
-      if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
-        console.warn('⚠️ Cloudinary not configured - skipping image deletion');
-        return { result: 'ok' }; // Mock successful deletion
-      }
-
       const result = await cloudinary.uploader.destroy(publicId);
       console.log('Cloudinary delete success:', result);
       return result;
@@ -76,12 +56,6 @@ class CloudinaryService {
   }
 
   static getOptimizedUrl(publicId, options = {}) {
-    // Check if Cloudinary is configured
-    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
-      console.warn('⚠️ Cloudinary not configured - returning placeholder URL');
-      return 'https://via.placeholder.com/400x400?text=Image+Not+Available';
-    }
-
     const defaultOptions = {
       quality: 'auto:good',
       fetch_format: 'auto',

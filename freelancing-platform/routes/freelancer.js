@@ -108,6 +108,10 @@ router.post('/profile',
   validationRules.freelancerProfile,
   handleValidationErrors,
   async (req, res) => {
+    console.log('🚀 Profile creation route reached!');
+    console.log('👤 User:', req.user._id, req.user.role);
+    console.log('📝 Request body:', req.body);
+    console.log('📁 Files:', req.files ? Object.keys(req.files) : 'No files');
     try {
       const {
         fullName,
@@ -116,8 +120,25 @@ router.post('/profile',
         address
       } = req.body;
 
+      // Debug logging
+      console.log('Received profile data:', {
+        fullName,
+        dateOfBirth,
+        gender,
+        address,
+        files: req.files ? Object.keys(req.files) : 'No files'
+      });
+
       // Parse date from YYYY-MM-DD format
       const parsedDate = new Date(dateOfBirth);
+      
+      // Validate date
+      if (isNaN(parsedDate.getTime())) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid date format. Please use YYYY-MM-DD format.'
+        });
+      }
 
       // Upload images to Cloudinary
       const uploadedImages = {};
@@ -168,7 +189,7 @@ router.post('/profile',
         profile.fullName = fullName;
         profile.dateOfBirth = parsedDate;
         profile.gender = gender;
-        profile.address = address;
+        profile.address = address || '';
         
         // Update images if provided
         if (uploadedImages.profilePhoto) profile.profilePhoto = uploadedImages.profilePhoto;
@@ -185,7 +206,7 @@ router.post('/profile',
           fullName,
           dateOfBirth: parsedDate,
           gender,
-          address,
+          address: address || '',
           profilePhoto: uploadedImages.profilePhoto || null,
           documents: {
             aadhaarFront: uploadedImages.aadhaarFront || null,
@@ -201,18 +222,24 @@ router.post('/profile',
 
       res.json({
         success: true,
-        message: 'Profile submitted for verification. Please wait for admin approval.',
+        message: 'Profile submitted for verification. Please wait for approval.',
         data: { 
           profile,
           verificationStatus: 'pending',
-          message: 'Your profile has been submitted for verification. You will receive a Freelancer ID once approved by admin.'
+          message: 'Your profile has been submitted for verification. You will receive a Freelancer ID once approved.'
         }
       });
     } catch (error) {
       console.error('Save profile error:', error);
+      console.error('Error details:', {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      });
       res.status(500).json({
         success: false,
-        message: 'Failed to save profile'
+        message: 'Failed to save profile',
+        error: error.message
       });
     }
   }

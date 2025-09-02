@@ -86,7 +86,7 @@ const VerificationPendingScreen = ({ navigation, route }) => {
           setRejectionReason(data.rejectionReason || 'Please check your documents and resubmit.');
           setCanResubmit(true);
         } else {
-          setStatusMessage('Your profile is pending verification. Please wait for admin approval.');
+          setStatusMessage('Your profile is pending verification. Please wait for approval.');
         }
       } else {
         const errorData = await response.text();
