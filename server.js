@@ -55,22 +55,13 @@ const allowedOrigins = [
   ...envOrigins
 ].filter(Boolean);
 
+// Reflect any incoming Origin to avoid CORS blocks in multi-domain setups
 const corsOptions = {
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or Postman)
     if (!origin) return callback(null, true);
-
-    // Direct allow-list match
-    if (allowedOrigins.includes(origin)) return callback(null, true);
-
-    // Allow any *.vercel.app and *.onrender.com subdomains
-    const isWildcardAllowed = /\.vercel\.app$/.test(origin) || /\.onrender\.com$/.test(origin);
-    if (isWildcardAllowed) return callback(null, true);
-
-    // Allow during local development
-    if (process.env.NODE_ENV === 'development') return callback(null, true);
-
-    callback(new Error('Not allowed by CORS'));
+    // Reflect the provided origin (Access-Control-Allow-Origin: <origin>)
+    return callback(null, true);
   },
   credentials: (process.env.CORS_CREDENTIALS || 'true') === 'true',
   optionsSuccessStatus: 200,
