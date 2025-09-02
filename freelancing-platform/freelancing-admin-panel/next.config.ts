@@ -10,6 +10,9 @@ const nextConfig: NextConfig = {
   // Fix for multiple lockfiles warning
   outputFileTracingRoot: __dirname,
   output: 'export',
+  basePath: '/admin-panel',
+  assetPrefix: '/admin-panel',
+  trailingSlash: true,
   // Remove deprecated turbo config
   // experimental: {
   //   turbo: {
