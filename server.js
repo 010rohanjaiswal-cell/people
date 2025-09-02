@@ -114,16 +114,13 @@ app.use('/api/messages', messageRoutes);
 app.use('/api/seed', seedRoutes);
 app.use('/api/payments', paymentRoutes);
 
-// Serve admin panel static build at /admin-panel
-const adminDist = path.join(__dirname, 'freelancing-platform', 'freelancing-admin-panel', '.next', 'standalone');
-const adminPublic = path.join(__dirname, 'freelancing-platform', 'freelancing-admin-panel', '.next', 'static');
-
-if (fs.existsSync(adminDist)) {
-  app.use('/admin-panel/_next/static', express.static(adminPublic, { maxAge: '1y', immutable: true }));
-  app.use('/admin-panel', express.static(adminDist));
-  // SPA fallback for admin panel
+// Serve admin panel static export at /admin-panel
+const adminOut = path.join(__dirname, 'freelancing-platform', 'freelancing-admin-panel', 'out');
+if (fs.existsSync(adminOut)) {
+  app.use('/admin-panel', express.static(adminOut, { index: false }));
+  // SPA fallback: always serve index.html for deep links
   app.get('/admin-panel/*', (req, res) => {
-    const htmlPath = path.join(adminDist, 'server', 'app', 'index.html');
+    const htmlPath = path.join(adminOut, 'index.html');
     if (fs.existsSync(htmlPath)) {
       return res.sendFile(htmlPath);
     }

@@ -8,7 +8,8 @@
     "dev": "nodemon server.js",
     "seed": "node scripts/seed.js",
     "seed:prod": "node scripts/seed-production.js",
-    "build:admin": "npm install --prefix freelancing-platform/freelancing-admin-panel && npm run build --prefix freelancing-platform/freelancing-admin-panel",
+    "build:admin": "npm install --prefix freelancing-platform/freelancing-admin-panel && npm run build --prefix freelancing-platform/freelancing-admin-panel && npm run export:admin",
+    "export:admin": "npm run export --prefix freelancing-platform/freelancing-admin-panel",
     "postinstall": "npm run build:admin"
   },
   "keywords": [

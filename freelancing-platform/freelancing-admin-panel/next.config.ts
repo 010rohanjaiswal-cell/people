@@ -9,15 +9,7 @@ const nextConfig: NextConfig = {
   },
   // Fix for multiple lockfiles warning
   outputFileTracingRoot: __dirname,
-  async rewrites() {
-    return [
-      {
-        source: '/api/:path*',
-        destination: 'https://freelancer-backend-jv21.onrender.com/api/:path*',
-      },
-    ];
-  },
-  output: 'standalone',
+  output: 'export',
   // Remove deprecated turbo config
   // experimental: {
   //   turbo: {
