@@ -114,16 +114,21 @@ app.use('/api/messages', messageRoutes);
 app.use('/api/seed', seedRoutes);
 app.use('/api/payments', paymentRoutes);
 
-// Serve admin panel static export at /admin-panel
-const adminOut = path.join(__dirname, 'freelancing-platform', 'freelancing-admin-panel', 'out');
-if (fs.existsSync(adminOut)) {
-  app.use('/admin-panel', express.static(adminOut, { index: false }));
-  // SPA fallback: always serve index.html for deep links
+// Serve admin panel static export at /admin-panel (Next.js output: 'export' with basePath)
+const adminOutRoot = path.join(__dirname, 'freelancing-platform', 'freelancing-admin-panel', 'out');
+const adminOutBase = path.join(adminOutRoot, 'admin-panel');
+if (fs.existsSync(adminOutBase)) {
+  app.use('/admin-panel', express.static(adminOutBase, { index: false }));
+  // Serve index for exact /admin-panel
+  app.get('/admin-panel', (req, res) => {
+    const htmlPath = path.join(adminOutBase, 'index.html');
+    if (fs.existsSync(htmlPath)) return res.sendFile(htmlPath);
+    res.status(404).send('Admin panel build not found');
+  });
+  // SPA fallback for deep links
   app.get('/admin-panel/*', (req, res) => {
-    const htmlPath = path.join(adminOut, 'index.html');
-    if (fs.existsSync(htmlPath)) {
-      return res.sendFile(htmlPath);
-    }
+    const htmlPath = path.join(adminOutBase, 'index.html');
+    if (fs.existsSync(htmlPath)) return res.sendFile(htmlPath);
     res.status(404).send('Admin panel build not found');
   });
 }
