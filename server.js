@@ -42,7 +42,7 @@ const allowedOrigins = [
   'http://localhost:3000', // Next.js admin panel
   'http://localhost:19006', // Expo development
   'http://localhost:8081', // React Native Metro
-  'https://your-admin-panel.vercel.app', // Production admin panel
+  'https://freelancing-admin-panel-v1-b45f2rv4c-rohans-projects-70c44444.vercel.app', // Production admin panel
   'https://your-mobile-app.expo.dev', // Production mobile app
   process.env.CORS_ORIGIN // Custom origin from env
 ].filter(Boolean);
