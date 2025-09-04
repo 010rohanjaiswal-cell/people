@@ -23,13 +23,13 @@ const messageRoutes = require('./routes/messages');
 const seedRoutes = require('./routes/seed');
 const paymentRoutes = require('./routes/payments');
 
-// Security middleware
+// Security middleware - disable CSP for admin panel
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
       imgSrc: ["'self'", "data:", "blob:", "http://localhost:10000", "https://localhost:10000"],
       connectSrc: ["'self'"],
       fontSrc: ["'self'"],
@@ -39,6 +39,12 @@ app.use(helmet({
     },
   },
 }));
+
+// Disable CSP for admin panel routes
+app.use('/admin-panel', (req, res, next) => {
+  res.removeHeader('Content-Security-Policy');
+  next();
+});
 
 // CORS configuration for frontend integration
 const allowedOrigins = [
@@ -98,6 +104,30 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/freelanci
 })
 .then(() => console.log('Connected to MongoDB'))
 .catch(err => console.error('MongoDB connection error:', err));
+
+// Serve static admin panel
+const adminPanelPath = path.join(__dirname, 'freelancing-admin-panel', 'out');
+console.log('📁 Admin panel path:', adminPanelPath);
+
+// Check if admin panel exists
+const fs = require('fs');
+if (fs.existsSync(adminPanelPath)) {
+  const files = fs.readdirSync(adminPanelPath);
+  console.log('✅ Admin panel found with', files.length, 'files/directories');
+  console.log('📄 Available files:', files.slice(0, 10).join(', '), files.length > 10 ? '...' : '');
+} else {
+  console.log('❌ Admin panel not found at:', adminPanelPath);
+}
+
+// Serve admin panel static files
+app.use('/admin-panel', express.static(adminPanelPath));
+
+// SPA fallback for admin panel - serve index.html for all admin panel routes
+app.get('/admin-panel/*', (req, res) => {
+  const indexPath = path.join(adminPanelPath, 'index.html');
+  console.log('🔄 SPA fallback for:', req.path, '→', indexPath);
+  res.sendFile(indexPath);
+});
 
 // Routes
 app.use('/api/auth', authRoutes);
