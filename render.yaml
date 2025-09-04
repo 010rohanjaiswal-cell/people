@@ -3,7 +3,9 @@ services:
     name: freelancer-backend-jv21
     env: node
     plan: free
-    buildCommand: npm install --include=dev
+    buildCommand: |
+      npm install --include=dev
+      npm run build:admin
     startCommand: npm start
     envVars:
       - key: NODE_ENV
