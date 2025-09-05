@@ -2,22 +2,22 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 class ApiService {
   constructor() {
-    // Production URL - now has Firebase route working!
-    const productionUrl = 'https://freelancer-backend-jv21.onrender.com';
-    const localBaseUrl = 'http://192.168.1.49:5000'; // Updated to use port 5000
+    // Local development URLs - prioritize localhost for faster development
+    const localBaseUrl = 'http://192.168.1.49:3001'; // Local network backend
+    const productionUrl = 'https://freelancer-backend-jv21.onrender.com'; // Production fallback
     
     this.baseUrls = [
-      productionUrl, // Primary: Production backend (Firebase route working!)
-      localBaseUrl, // Fallback: Local backend
-      'http://10.0.2.2:5000', // Android emulator - local backend
-      'http://localhost:5000' // Localhost - local backend
+      'http://localhost:3001', // Primary: Localhost backend (fastest for development)
+      localBaseUrl, // Fallback: Local network backend
+      'http://10.0.2.2:3001', // Android emulator - local backend
+      productionUrl // Last resort: Production backend
     ];
     
     this.timeout = 15000; // 15 seconds
     
     // Debug: Log the URLs being used
     console.log('🔧 ApiService initialized with URLs:', this.baseUrls);
-    console.log('🚀 Production backend now has Firebase route!');
+    console.log('🏠 Localhost backend prioritized for development!');
     
     // Test network connectivity
     this.testNetworkConnectivity();
@@ -26,13 +26,11 @@ class ApiService {
   async testNetworkConnectivity() {
     console.log('🔧 Testing network connectivity...');
     const testUrls = [
-      'https://freelancer-backend-jv21.onrender.com', // Production backend (Firebase route working!)
-      'http://192.168.1.49:3001',
-      'http://localhost:3001',
-      'http://10.0.2.2:3001',
-      'http://127.0.0.1:3001',
-      'http://192.168.1.49:10000',
-      'http://localhost:10000'
+      'http://localhost:3001', // Primary: Localhost backend
+      'http://192.168.1.49:3001', // Local network backend
+      'http://10.0.2.2:3001', // Android emulator
+      'http://127.0.0.1:3001', // Alternative localhost
+      'https://freelancer-backend-jv21.onrender.com' // Production fallback
     ];
 
     for (const url of testUrls) {
